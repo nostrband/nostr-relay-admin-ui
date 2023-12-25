@@ -1,7 +1,8 @@
-const Home = () => {
-  return (
-    <div>Nostr Dashboard</div>
-  )
-}
+import NDK from "@nostrband/ndk";
+import Events from "./Events/Events";
 
-export default Home
+const Home = ({ ndk }: { ndk: NDK | null }) => {
+  return <Events ndk={ndk} />;
+};
+
+export default Home;
