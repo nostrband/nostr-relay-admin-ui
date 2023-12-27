@@ -56,6 +56,7 @@
   font-size: 0.85rem;
 }
 .postState span {
+  color: var(--bg-secondary-color) !important;
   margin-left: 0.25rem;
 }
 .postState a {
@@ -154,6 +155,10 @@
   color: var(--bg-secondary-color);
   font-size: 0.8rem;
   margin: 0 0 0.3rem 0;
+}
+.postHeader {
+  display: flex;
+  justify-content: space-between;
 }
 @media screen and (max-width: 400px) {
   .bannerMovie {

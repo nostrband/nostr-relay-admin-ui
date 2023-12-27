@@ -15,8 +15,8 @@ function App() {
   return (
     <Container>
       <Row className="justify-content-lg-center">
-        <h3>Nostr Dashboard</h3>
         <Col lg={9}>
+          <h3>Nostr Dashboard</h3>
           <Routes>
             <Route path="/" element={<Home ndk={ndk} />} />
           </Routes>
