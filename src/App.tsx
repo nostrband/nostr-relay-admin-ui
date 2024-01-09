@@ -1,15 +1,14 @@
 import { Container, Row, Col } from "react-bootstrap";
 import Home from "./pages/Home/Home";
 import { useLayoutEffect, useState } from "react";
-import NDK from "@nostrband/ndk";
 import { Route, Routes } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "./hooks/redux";
+import { userSlice } from "./store/reducers/UserSlice";
 
 function App() {
-  const [ndk, setNdk] = useState<NDK | null>(null);
+  const { ndk } = useAppSelector((store) => store.connectionReducer);
   useLayoutEffect(() => {
-    const ndk = new NDK({ explicitRelayUrls: ["wss://relay.nostr.band"] });
     ndk.connect();
-    setNdk(ndk);
   }, []);
 
   return (

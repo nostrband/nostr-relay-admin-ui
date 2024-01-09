@@ -73,7 +73,7 @@ const PostItem: FC<postItemType> = ({
       {thread && <p className={cl.replyTo}>In a thread by {thread}</p>}
       <div className={cl.postHeader}>
         <div className={cl.postName}>
-          <Link to={`/${npubKey}`}>
+          <Link to={`https://nostr.band/${npubKey}`} target="_blanc">
             <div className={cl.postImage}>
               {!imgError ? (
                 picture ? (
@@ -98,7 +98,11 @@ const PostItem: FC<postItemType> = ({
               )}
             </div>
           </Link>
-          <Link className={cl.postNameLink} to={`/${npubKey}`}>
+          <Link
+            className={cl.postNameLink}
+            to={`https://nostr.band/${npubKey}`}
+            target="_blanc"
+          >
             {name}
           </Link>
           <Dropdown id="profile-dropdown" className="profile-dropdown">
@@ -130,14 +134,13 @@ const PostItem: FC<postItemType> = ({
           <b>{title.slice(0, 100)}</b>
         </div>
       )}
-      <div
-        style={{ cursor: "pointer" }}
-        onClick={(e) => {
-          navigate(`/${note}`);
-        }}
+      <Link
+        to={`https://nostr.band/${note}`}
+        target="_blanc"
+        style={{ textDecoration: "none" }}
       >
         <MarkdownComponent content={content} mode={""} />
-      </div>
+      </Link>
       <div className={cl.postStats}>
         <div className={cl.postState}>
           <Link to={`/${note}`}>
