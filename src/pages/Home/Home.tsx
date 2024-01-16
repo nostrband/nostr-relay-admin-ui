@@ -4,6 +4,7 @@ import "./Home.css";
 import { Button } from "react-bootstrap";
 import { useSearchParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import Settings from "./Settings/Settings";
 
 const Home = ({ ndk }: { ndk: NDK | null }) => {
   const [searchParams] = useSearchParams();
@@ -41,9 +42,9 @@ const Home = ({ ndk }: { ndk: NDK | null }) => {
       </div>
       <div className="home-profiles">
         {panel === "events" ? (
-          <Events ndk={ndk} />
-        ) : panel === "review" ? (
-          <Events ndk={ndk} />
+          <Events />
+        ) : panel === "settings" ? (
+          <Settings />
         ) : (
           ""
         )}

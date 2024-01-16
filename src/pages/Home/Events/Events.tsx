@@ -10,8 +10,9 @@ import cl from "./Events.module.css";
 import Search from "../../../components/Search/Search";
 import { useSearchParams } from "react-router-dom";
 import { dateToUnix } from "nostr-react";
+import { useAppSelector } from "../../../hooks/redux";
 
-const Events = ({ ndk }: { ndk: NDK | null }) => {
+const Events = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [posts, setPosts] = useState<NDKEvent[]>([]);
   const [postsAuthors, setPostsAuthors] = useState<NDKEvent[]>([]);
@@ -23,6 +24,7 @@ const Events = ({ ndk }: { ndk: NDK | null }) => {
   const [searchParams] = useSearchParams();
   const [isBottom, setIsBottom] = useState<boolean>(false);
   const search = searchParams.get("q");
+  const ndk = useAppSelector((store) => store.connectionReducer.ndk);
 
   const handleScroll = () => {
     const windowHeight = window.innerHeight;
