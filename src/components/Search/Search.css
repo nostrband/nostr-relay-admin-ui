@@ -1,0 +1,138 @@
+#search-input {
+  border-radius: 5px;
+  position: relative;
+}
+#search-input:focus {
+  border: none;
+}
+
+#dropdown-basic {
+  background-color: transparent;
+  color: var(--bg-secondary-color);
+  border: 1px solid #6c757d;
+  z-index: 4;
+}
+#dropdown-basic select {
+  background-color: var(--body-background) !important;
+  color: var(--body-color) !important;
+  cursor: pointer;
+  border-radius: 0;
+  border: none;
+  padding: 0.375rem 2rem 0.375rem 0.5rem;
+}
+#dropdown-basic:hover {
+  background-color: var(--bg-secondary-color);
+  color: white;
+}
+#dropdown-basic:focus {
+  background-color: var(--bg-secondary-color);
+  color: white;
+}
+#search-btn {
+  background-color: transparent;
+  color: var(--nav-link-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#search-btn:hover {
+  background-color: var(--bg-secondary-color);
+  color: white;
+}
+
+.loader {
+  width: 35px;
+  background-color: var(--body-loader-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchInput {
+  background-color: var(--body-background) !important;
+  color: var(--body-color) !important;
+}
+.searchInput::placeholder {
+  color: var(--body-color) !important;
+}
+
+.searchAdvanced {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  margin-bottom: 2rem;
+  padding: 0.9rem;
+  box-shadow: var(--body-boxshadow);
+  border-radius: 16px;
+}
+.searchAdvanced {
+  color: var(--body-color);
+}
+.form-label {
+  color: var(--body-mute-color);
+  font-size: 0.9rem;
+}
+.searchInput:disabled {
+  background-color: #6c757d41 !important;
+}
+
+.advancedBtn {
+  border-color: var(--body-border-color) !important;
+}
+
+.datePicker {
+  display: flex;
+  flex-wrap: wrap;
+}
+.datePickerInput {
+  background: var(--body-background) !important;
+  color: var(--body-color);
+  border: 1px solid var(--body-mutest-color);
+  padding: 0.4rem 0.4rem;
+  border-radius: 0.375rem;
+  transition: 0.3s;
+}
+.datePickerInput:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  outline: none;
+}
+.dayPickerMonth {
+  display: flex;
+  color: var(--body-color);
+}
+.dayPickerMonth p {
+  font-size: 1.1rem;
+}
+.dayPickerMonth div {
+  width: 80%;
+  margin-left: 0.5rem !important;
+  display: flex;
+  flex-wrap: wrap;
+}
+.monthPickerMonth {
+  margin-top: 0.7rem;
+  display: flex;
+  color: var(--body-color);
+}
+.monthPickerMonth div {
+  margin-left: 0.5rem;
+}
+.monthPickerMonth p {
+  font-size: 1.1rem;
+}
+
+.date-picker-wrapper p {
+  margin: 0 0 0 0.5rem;
+  font-size: 1rem;
+  color: var(--body-mute-color);
+}
+
+@media screen and (max-width: 450px) {
+  .date-picker-wrapper {
+    width: 49%;
+  }
+  .datePickerInput {
+    width: 80%;
+  }
+}

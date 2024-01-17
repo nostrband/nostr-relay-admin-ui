@@ -1,22 +1,21 @@
 import { Container, Row, Col } from "react-bootstrap";
 import Home from "./pages/Home/Home";
 import { useLayoutEffect, useState } from "react";
-import NDK from "@nostrband/ndk";
 import { Route, Routes } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "./hooks/redux";
+import { userSlice } from "./store/reducers/UserSlice";
 
 function App() {
-  const [ndk, setNdk] = useState<NDK | null>(null);
+  const { ndk } = useAppSelector((store) => store.connectionReducer);
   useLayoutEffect(() => {
-    const ndk = new NDK({ explicitRelayUrls: ["wss://relay.nostr.band"] });
     ndk.connect();
-    setNdk(ndk);
   }, []);
 
   return (
     <Container>
       <Row className="justify-content-lg-center">
-        <h3>Nostr Dashboard</h3>
         <Col lg={9}>
+          <h3>Nostr Dashboard</h3>
           <Routes>
             <Route path="/" element={<Home ndk={ndk} />} />
           </Routes>

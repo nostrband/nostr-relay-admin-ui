@@ -146,3 +146,16 @@ export type ndkFilter = {
   since?: number;
   until?: number;
 };
+
+type Filter = {
+  relays?: string[];
+  kinds?: string[];
+  ids?: string[];
+  authors?: string[];
+  [key: string]: string[] | undefined;
+};
+
+export type ruleType = {
+  type: "import" | "review" | "block";
+  filter: Filter;
+};
