@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import TagInput from "../../../components/TagInput/TagInput";
 import cl from "./Settings.module.css";
 import { ruleType } from "../../../types/types";
@@ -180,6 +180,17 @@ const Settings = () => {
     setLetterValues(newLetterValues);
   };
 
+  useLayoutEffect(() => {
+    const rule = rules.find((r) => r.type === searchParams.get("rule"));
+    if(rule) {
+        setSelectedRule(rule);
+    } else {
+        const importRule = rules.find((r) => r.type === "import");
+        setSelectedRule(importRule);
+        setSelectedRuleType("import")
+    }
+  }, []);
+
   useEffect(() => {
     setIsEditActive(false);
     const rule = rules.find((r) => r.type === searchParams.get("rule"));
@@ -206,7 +217,6 @@ const Settings = () => {
     }
     setAuthors(rule?.filter.authors?.toString() ?? "");
     setIds(rule?.filter.ids?.toString() ?? "");
-    setSelectedRule(rule);
   }, [searchParams.get("rule")]);
 
   useEffect(() => {
