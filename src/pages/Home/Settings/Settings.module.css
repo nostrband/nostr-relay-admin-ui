@@ -13,7 +13,7 @@
   flex-direction: column;
   margin-top: 1rem;
 }
-.rules button {
+.rules > div > button {
   margin-right: 0.5rem;
 }
 .rule {
@@ -28,4 +28,10 @@
   margin-top: 1rem;
   display: flex;
   flex-direction: column;
+}
+.selectDropdown {
+  margin-top: 1rem;
+}
+.controlPanel {
+  margin-left: auto;
 }

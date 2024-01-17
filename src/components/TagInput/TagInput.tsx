@@ -12,11 +12,13 @@ const TagInput = ({
   setTags,
   placeholder,
   suggestions,
+  disabled,
 }: {
   tags: tagType[];
   setTags: (tags: tagType[]) => void;
   placeholder: string;
   suggestions: tagType[];
+  disabled?: boolean;
 }) => {
   const onDelete = useCallback(
     (tagIndex: number) => {
@@ -35,6 +37,7 @@ const TagInput = ({
 
   return (
     <ReactTags
+      isDisabled={disabled}
       delimiterKeys={[" ", "Enter"]}
       activateFirstOption
       allowNew

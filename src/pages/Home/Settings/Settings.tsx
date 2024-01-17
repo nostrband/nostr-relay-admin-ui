@@ -3,9 +3,18 @@ import TagInput from "../../../components/TagInput/TagInput";
 import cl from "./Settings.module.css";
 import { ruleType } from "../../../types/types";
 import { Button, Form } from "react-bootstrap";
-import { Download, EyeFill, LockFill } from "react-bootstrap-icons";
+import {
+  Download,
+  EyeFill,
+  LockFill,
+  Pencil,
+} from "react-bootstrap-icons";
 import { useSearchParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
+import Select, { ActionMeta } from "react-select";
+import makeAnimated from "react-select/animated";
+
+const animatedComponents = makeAnimated();
 
 type tagType = {
   value: number;
@@ -17,6 +26,11 @@ type letterType = {
   value: string[];
 };
 
+interface OptionType {
+  value: string;
+  label: string;
+}
+
 const Settings = () => {
   const [relays, setRelays] = useState<tagType[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -27,14 +41,21 @@ const Settings = () => {
   const [ids, setIds] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [sinceDate, setSinceDate] = useState<Date | null>(null);
-  const [letters, setLetters] = useState<letterType[]>([]);
+  const [letterValues, setLetterValues] = useState<{ [key: string]: string }>(
+    {},
+  );
+  const [selectedLetters, setSelectedLetters] = useState<OptionType[] | null>(
+    null,
+  );
+  const [isEditActive, setIsEditActive] = useState(false);
   const [rules, setRules] = useState<ruleType[]>([
     {
       type: "import",
       filter: {
         relays: ["Реле 1"],
         kinds: ["Profiles"],
-        authors: ["author1"],
+        authors: ["author1, author2"],
+        ids: ["id1, id2"],
         "#a": ["valueA"],
         "#b": ["valueB"],
       },
@@ -55,8 +76,8 @@ const Settings = () => {
         relays: ["Реле 2"],
         kinds: ["kind2"],
         authors: ["author2"],
-        "#c": ["valueC"],
-        "#d": ["valueD"],
+        "#f": ["valueF"],
+        "#j": ["valueJ"],
       },
     },
   ]);
@@ -144,7 +165,23 @@ const Settings = () => {
     "Z",
   ];
 
+  const handleLetterChange = (
+    selectedOptions: OptionType[] | null,
+    actionMeta: ActionMeta<OptionType>,
+  ) => {
+    setSelectedLetters(selectedOptions);
+  };
+
+  const handleValueChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    letter: string,
+  ) => {
+    const newLetterValues = { ...letterValues, [letter]: event.target.value };
+    setLetterValues(newLetterValues);
+  };
+
   useEffect(() => {
+    setIsEditActive(false);
     const rule = rules.find((r) => r.type === searchParams.get("rule"));
     setKinds(
       rule?.filter.kinds?.map((k, i) => {
@@ -156,7 +193,37 @@ const Settings = () => {
         return { value: i, label: k };
       }) ?? [],
     );
+    if (rule) {
+      const updatedSelectedLetters = allLetters
+        .filter((letter) => rule.filter[`#${letter}`]?.[0] !== undefined)
+        .map((letter) => ({ value: `#${letter}`, label: `#${letter}` }));
+      setSelectedLetters(updatedSelectedLetters);
+
+      Object.keys(rule.filter).forEach((key) => {
+        const value = rule.filter[key]?.[0] || "";
+        setLetterValues((prevValues) => ({ ...prevValues, [key]: value }));
+      });
+    }
+    setAuthors(rule?.filter.authors?.toString() ?? "");
+    setIds(rule?.filter.ids?.toString() ?? "");
     setSelectedRule(rule);
+  }, [searchParams.get("rule")]);
+
+  useEffect(() => {
+    const currentRule = rules.find(
+      (rule) => rule.type === searchParams.get("rule"),
+    );
+    if (currentRule) {
+      const updatedLetterValues: { [key: string]: string } = {};
+
+      // Только те буквы, которые есть в текущем правиле
+      Object.keys(currentRule.filter).forEach((key) => {
+        const value = currentRule.filter[key]?.[0] || "";
+        updatedLetterValues[key] = value;
+      });
+
+      setLetterValues(updatedLetterValues);
+    }
   }, [searchParams.get("rule")]);
 
   const setSelectedRuleType = (rule: string) => {
@@ -174,6 +241,7 @@ const Settings = () => {
         <div className={cl.relays}>
           <h5>Relays</h5>
           <TagInput
+            disabled={!isEditActive}
             tags={relays}
             setTags={setRelays}
             suggestions={relaysSuggestions}
@@ -228,6 +296,7 @@ const Settings = () => {
                 controlId="exampleForm.ControlInput1"
               >
                 <TagInput
+                  disabled={!isEditActive}
                   suggestions={kindsSuggestions}
                   placeholder="Kind"
                   tags={kinds}
@@ -235,6 +304,7 @@ const Settings = () => {
                 />
                 <Form.Label>Example: profiles, posts</Form.Label>
                 <TagInput
+                  disabled={!isEditActive}
                   suggestions={relaysSuggestions}
                   placeholder="Relays"
                   tags={selectedRelays}
@@ -244,20 +314,23 @@ const Settings = () => {
                   Example: wss://relay.nostr.band, relay.damus.io
                 </Form.Label>
                 <Form.Control
+                  disabled={!isEditActive}
                   placeholder="Authors"
                   value={authors}
                   onChange={(e) => setAuthors(e.target.value)}
                 />
-                <Form.Label>Example: npubX</Form.Label>
+                <Form.Label>Example: npub1xxx</Form.Label>
                 <Form.Control
+                  disabled={!isEditActive}
                   placeholder="Ids"
                   value={ids}
                   onChange={(e) => setIds(e.target.value)}
                 />
-                <Form.Label>Example: noteX</Form.Label>
+                <Form.Label>Example: note1xxx</Form.Label>
                 <div className="datePicker">
                   <div className="date-picker-wrapper">
                     <DatePicker
+                      readOnly={!isEditActive}
                       placeholderText="Since"
                       className="datePickerInput"
                       selected={sinceDate}
@@ -278,6 +351,7 @@ const Settings = () => {
                     style={{ marginLeft: ".3rem" }}
                   >
                     <DatePicker
+                      readOnly={!isEditActive}
                       placeholderText={"Until"}
                       className="datePickerInput"
                       selected={startDate}
@@ -294,7 +368,59 @@ const Settings = () => {
                     />
                   </div>
                 </div>
+                <Select
+                  isDisabled={!isEditActive}
+                  className={cl.selectDropdown}
+                  components={animatedComponents}
+                  isMulti
+                  //@ts-ignore
+                  options={allLetters.map((letter) => ({
+                    value: `#${letter}`,
+                    label: `#${letter}`,
+                  }))}
+                  value={selectedLetters}
+                  //@ts-ignore
+                  onChange={handleLetterChange}
+                />
+                {selectedLetters && selectedLetters.length > 0 && (
+                  <div>
+                    {selectedLetters.map(({ value: letter }, index) => (
+                      <div key={letter}>
+                        <Form.Label className="mt-3 mb-0">
+                          Enter values for {letter} separated by commas:
+                        </Form.Label>
+                        <Form.Control
+                          disabled={!isEditActive}
+                          type="text"
+                          placeholder={`e.g., value1, value2, value3...`}
+                          value={letterValues[letter] || ""}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            handleValueChange(e, letter)
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </Form.Group>
+              <div className={cl.controlPanel}>
+                {!isEditActive ? (
+                  <Button onClick={() => setIsEditActive(true)}>
+                    <Pencil />
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="success">Save</Button>
+                    <Button
+                      variant="danger"
+                      style={{ marginLeft: ".5rem" }}
+                      onClick={() => setIsEditActive(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>

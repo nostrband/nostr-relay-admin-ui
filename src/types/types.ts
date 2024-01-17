@@ -150,6 +150,7 @@ export type ndkFilter = {
 type Filter = {
   relays?: string[];
   kinds?: string[];
+  ids?: string[];
   authors?: string[];
   [key: string]: string[] | undefined;
 };
