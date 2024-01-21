@@ -7,3 +7,4 @@ declare module "light-bolt11-decoder";
 declare module "react-datepicker";
 declare module "react-helmet";
 declare module "react-tag-autocomplete";
+declare module "react-modal";

@@ -147,7 +147,7 @@ export type ndkFilter = {
   until?: number;
 };
 
-type Filter = {
+export type Filter = {
   relays?: string[];
   kinds?: string[];
   ids?: string[];
@@ -156,6 +156,8 @@ type Filter = {
 };
 
 export type ruleType = {
-  type: "import" | "review" | "block";
+  id: number;
+  name: string;
+  type: string;
   filter: Filter;
 };
