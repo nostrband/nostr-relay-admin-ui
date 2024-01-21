@@ -8,6 +8,7 @@ import {
   Gear,
   Pencil,
   PlusCircle,
+  Trash,
   XSquare,
 } from "react-bootstrap-icons";
 import { useSearchParams } from "react-router-dom";
@@ -188,12 +189,25 @@ const Settings = () => {
     newRule.setType(selectTypeValue?.value ?? "");
     newRule.filter = {
       kinds: kinds.map((k) => k.label),
-      relays: relays.map((r) => r.label),
+      relays: selectedRelays.length
+        ? selectedRelays.map((r) => r.label)
+        : relays.map((r) => r.label),
+      authors: [authors],
+      ids: [ids],
     };
     setRules((prevState) => [...prevState, newRule]);
     setIsModal(false);
     setIsEditActive(false);
     setModalType("editType");
+  };
+
+  const removeRule = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    rule: ruleType,
+  ) => {
+    e.stopPropagation();
+    const newRules = rules.filter((r) => r.id !== rule.id);
+    setRules(newRules);
   };
 
   return (
@@ -237,33 +251,50 @@ const Settings = () => {
             <PlusCircle />
           </Button>
         </div>
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Rule</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rules.map((rule, index) => {
-              return (
-                <tr
-                  key={rule.id}
-                  onClick={() => {
-                    setSelectedRule(rule);
-                    setModalType("editType");
-                    setIsModal(true);
-                  }}
-                >
-                  <td>{index + 1}</td>
-                  <td>{rule.name}</td>
-                  <td>{rule.type}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+        {rules.length ? (
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Rule</th>
+                <th>Type</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rules.map((rule, index) => {
+                return (
+                  <tr
+                    key={rule.id}
+                    onClick={() => {
+                      setSelectedRule(rule);
+                      setModalType("editType");
+                      setIsModal(true);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <td>{index + 1}</td>
+                    <td>{rule.name}</td>
+                    <td>{rule.type}</td>
+                    <td align="center" width={"10px"}>
+                      {
+                        <Button
+                          size="sm"
+                          onClick={(e) => removeRule(e, rule)}
+                          variant="outline-danger"
+                        >
+                          <Trash />
+                        </Button>
+                      }
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        ) : (
+          "No rules found"
+        )}
 
         <ReactModal
           onAfterOpen={() => {
@@ -281,17 +312,20 @@ const Settings = () => {
         >
           {selectedRule && (
             <div className={cl.selectedRule}>
-              <Form.Group
-                className="mb-1"
-                controlId="exampleForm.ControlInput1"
-              >
-                <Form.Control
-                  disabled={!isEditActive}
-                  placeholder="Rule name"
-                  value={ruleName}
-                  onChange={(e) => setRuleName(e.target.value)}
-                />
-                <Form.Label>Example: Rule 1</Form.Label>
+              <Form>
+                <Form.Group
+                  className="mb-1"
+                  controlId="exampleForm.ControlInput1"
+                >
+                  <Form.Control
+                    required
+                    disabled={!isEditActive}
+                    placeholder="Rule name"
+                    value={ruleName}
+                    onChange={(e) => setRuleName(e.target.value)}
+                  />
+                  <Form.Label>Example: Rule 1</Form.Label>
+                </Form.Group>
                 <Select
                   required
                   value={selectTypeValue}
@@ -322,20 +356,24 @@ const Settings = () => {
                 <Form.Label>
                   Example: wss://relay.nostr.band, relay.damus.io
                 </Form.Label>
-                <Form.Control
-                  disabled={!isEditActive}
-                  placeholder="Authors"
-                  value={authors}
-                  onChange={(e) => setAuthors(e.target.value)}
-                />
-                <Form.Label>Example: npub1xxx</Form.Label>
-                <Form.Control
-                  disabled={!isEditActive}
-                  placeholder="Ids"
-                  value={ids}
-                  onChange={(e) => setIds(e.target.value)}
-                />
-                <Form.Label>Example: note1xxx</Form.Label>
+                <Form.Group>
+                  <Form.Control
+                    disabled={!isEditActive}
+                    placeholder="Authors"
+                    value={authors}
+                    onChange={(e) => setAuthors(e.target.value)}
+                  />
+                  <Form.Label>Example: npub1xxx</Form.Label>
+                </Form.Group>
+                <Form.Group>
+                  <Form.Control
+                    disabled={!isEditActive}
+                    placeholder="Ids"
+                    value={ids}
+                    onChange={(e) => setIds(e.target.value)}
+                  />
+                  <Form.Label>Example: note1xxx</Form.Label>
+                </Form.Group>
                 <div className="datePicker">
                   <div className="date-picker-wrapper">
                     <DatePicker
@@ -411,35 +449,37 @@ const Settings = () => {
                     ))}
                   </div>
                 )}
-              </Form.Group>
-              <div className={cl.controlPanel}>
-                {!isEditActive && modalType === "editType" ? (
-                  <Button onClick={() => setIsEditActive(true)}>
-                    <Pencil />
-                  </Button>
-                ) : (
-                  <>
-                    {modalType === "editType" ? (
-                      <Button variant="success">Save</Button>
-                    ) : (
-                      <Button variant="success" onClick={addRule} type="submit">
-                        Add Rule
-                      </Button>
-                    )}
-
-                    <Button
-                      variant="danger"
-                      style={{ marginLeft: ".5rem" }}
-                      onClick={() => {
-                        setIsEditActive(false);
-                        setIsModal(false);
-                      }}
-                    >
-                      Cancel
+                <div className={cl.controlPanel}>
+                  {!isEditActive && modalType === "editType" ? (
+                    <Button onClick={() => setIsEditActive(true)}>
+                      <Pencil />
                     </Button>
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <>
+                      {modalType === "editType" ? (
+                        <Button variant="success" type="submit">
+                          Save
+                        </Button>
+                      ) : (
+                        <Button type="submit" onClick={addRule}>
+                          Add Rule
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="danger"
+                        style={{ marginLeft: ".5rem" }}
+                        onClick={() => {
+                          setIsEditActive(false);
+                          setIsModal(false);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </Form>
             </div>
           )}
         </ReactModal>
