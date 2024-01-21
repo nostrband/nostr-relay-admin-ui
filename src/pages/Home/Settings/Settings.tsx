@@ -35,6 +35,11 @@ interface OptionType {
   label: string;
 }
 
+interface TableData {
+  letter: string;
+  value: string;
+}
+
 const Settings = () => {
   const [relays, setRelays] = useState<tagType[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,6 +63,7 @@ const Settings = () => {
   const [isEditActive, setIsEditActive] = useState(false);
   const [isEditRelays, setIsEditRelays] = useState(false);
   const [modalType, setModalType] = useState("editType");
+  const [tableData, setTableData] = useState<TableData[]>([]);
   const [rules, setRules] = useState<ruleType[]>([
     {
       id: 1,
@@ -122,6 +128,41 @@ const Settings = () => {
       setSelectedRule(importRule);
     }
   }, []);
+
+  const getAvailableLetters = (index: number) => {
+    const usedLetters = tableData.map((data) => data.letter);
+    return allLetters.filter(
+      (letter) =>
+        !usedLetters.includes(letter) || usedLetters[index] === letter,
+    );
+  };
+
+  const handleAddRow = () => {
+    const available = getAvailableLetters(tableData.length);
+    if (available.length === 0) {
+      alert("All letters are used.");
+      return;
+    }
+
+    const newLetter = available[0];
+    setTableData((prevData) => [...prevData, { letter: newLetter, value: "" }]);
+  };
+
+  const handleTableValueChange = (index: number, value: string) => {
+    setTableData((prevData) => {
+      const newData = [...prevData];
+      newData[index].value = value;
+      return newData;
+    });
+  };
+
+  const handleTableLetterChange = (index: number, letter: string) => {
+    setTableData((prevData) => {
+      const newData = [...prevData];
+      newData[index].letter = letter;
+      return newData;
+    });
+  };
 
   const closeModal = () => setIsModal(false);
 
@@ -305,7 +346,10 @@ const Settings = () => {
           }}
           ariaHideApp={false}
           className={cl.modal}
-          style={{ overlay: { zIndex: 6, background: "rgba(0,0,0,0.4)" } }}
+          style={{
+            overlay: { zIndex: 6, background: "rgba(0,0,0,0.4)" },
+            content: { overflow: "auto", maxHeight: "80vh" },
+          }}
           contentLabel="Embed"
           isOpen={isModal}
           onRequestClose={closeModal}
@@ -415,40 +459,68 @@ const Settings = () => {
                     />
                   </div>
                 </div>
-                <Select
-                  isDisabled={!isEditActive}
-                  className={cl.selectDropdown}
-                  components={animatedComponents}
-                  isMulti
-                  //@ts-ignore
-                  options={allLetters.map((letter) => ({
-                    value: `#${letter}`,
-                    label: `#${letter}`,
-                  }))}
-                  value={selectedLetters}
-                  //@ts-ignore
-                  onChange={handleLetterChange}
-                />
-                {selectedLetters && selectedLetters.length > 0 && (
-                  <div>
-                    {selectedLetters.map(({ value: letter }, index) => (
-                      <div key={letter}>
-                        <Form.Label className="mt-3 mb-0">
-                          Enter values for {letter} separated by commas:
-                        </Form.Label>
-                        <Form.Control
-                          disabled={!isEditActive}
-                          type="text"
-                          placeholder={`e.g., value1, value2, value3...`}
-                          value={letterValues[letter] || ""}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            handleValueChange(e, letter)
-                          }
-                        />
-                      </div>
-                    ))}
-                  </div>
+                {tableData.length ? (
+                  <Table striped bordered hover size="sm" className="mt-3">
+                    <thead>
+                      <tr>
+                        <th>Letter</th>
+                        <th>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tableData.map((data, index) => (
+                        <tr key={index}>
+                          <td>
+                            <Form.Select
+                              disabled={!isEditActive}
+                              value={data.letter}
+                              onChange={(e) =>
+                                handleTableLetterChange(index, e.target.value)
+                              }
+                            >
+                              {getAvailableLetters(index).map((letter) => (
+                                <option key={letter} value={letter}>
+                                  #{letter}
+                                </option>
+                              ))}
+                            </Form.Select>
+                          </td>
+                          <td>
+                            <Form.Control
+                              disabled={!isEditActive}
+                              type="text"
+                              value={data.value}
+                              onChange={(e) =>
+                                handleTableValueChange(index, e.target.value)
+                              }
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <Button
+                    className="mt-2"
+                    variant="light"
+                    disabled={!isEditActive}
+                    onClick={handleAddRow}
+                  >
+                    Open Table
+                  </Button>
                 )}
+                {tableData.length ? (
+                  <Button
+                    variant="light"
+                    disabled={!isEditActive}
+                    onClick={handleAddRow}
+                  >
+                    Add Row
+                  </Button>
+                ) : (
+                  ""
+                )}
+
                 <div className={cl.controlPanel}>
                   {!isEditActive && modalType === "editType" ? (
                     <Button onClick={() => setIsEditActive(true)}>
