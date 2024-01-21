@@ -1,0 +1,97 @@
+export const kindsSuggestions = [
+  {
+    value: 1,
+    label: "Profiles",
+  },
+  {
+    value: 2,
+    label: "Posts",
+  },
+  {
+    value: 3,
+    label: "Zaps",
+  },
+];
+export const relaysSuggestions = [
+  {
+    value: 1,
+    label: "relay.damus.io",
+  },
+  {
+    value: 2,
+    label: "relay.nostr.ai",
+  },
+  {
+    value: 3,
+    label: "wss://relay.nostr.band",
+  },
+];
+export const typesSuggestions = [
+  {
+    value: 1,
+    label: "import",
+  },
+  {
+    value: 2,
+    label: "review",
+  },
+  {
+    value: 3,
+    label: "block",
+  },
+];
+
+export const allLetters = [
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+  "y",
+  "z",
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+  "Q",
+  "R",
+  "S",
+  "T",
+  "U",
+  "V",
+  "W",
+  "X",
+  "Y",
+  "Z",
+];

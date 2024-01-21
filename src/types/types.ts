@@ -156,6 +156,8 @@ type Filter = {
 };
 
 export type ruleType = {
-  type: "import" | "review" | "block";
+  id: number;
+  name: string;
+  type: string;
   filter: Filter;
 };

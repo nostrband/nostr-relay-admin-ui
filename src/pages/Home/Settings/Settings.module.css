@@ -1,17 +1,33 @@
-.settingsContent {
+.relays {
   display: flex;
   flex-direction: column;
-  max-width: 100%;
   margin-bottom: 2rem;
   padding: 0.9rem;
   box-shadow: var(--body-boxshadow);
   border-radius: 16px;
 }
-
+.relaysControl {
+  display: flex;
+  align-items: center;
+}
+.relaysControlInput {
+  width: 100%;
+}
+.relaysBtn {
+  display: flex;
+}
+.relaysBtn button {
+  margin-left: 0.3rem;
+}
 .rules {
   display: flex;
   flex-direction: column;
   margin-top: 1rem;
+  max-width: 100%;
+  margin-bottom: 2rem;
+  padding: 0.9rem;
+  box-shadow: var(--body-boxshadow);
+  border-radius: 16px;
 }
 .rules > div > button {
   margin-right: 0.5rem;
@@ -34,4 +50,73 @@
 }
 .controlPanel {
   margin-left: auto;
+}
+
+.rulesHeader {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: baseline;
+}
+.rulesHeader h5 {
+  line-height: 0;
+}
+.rulesHeader button {
+  margin-left: 0.3rem;
+}
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 75%;
+  height: max-content;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  padding: 1rem 2.5rem;
+  background-color: var(--body-background);
+  color: var(--body-color);
+  border: 1px solid rgb(204, 204, 204);
+  border-radius: 16px;
+}
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.modalContent p {
+  word-wrap: break-word;
+}
+
+.modalFooter {
+  float: right;
+}
+
+#embed {
+  position: relative;
+}
+
+.embedLabel {
+  margin-bottom: 0.2rem;
+  font-weight: 500;
+}
+.muted {
+  color: var(--bg-secondary-color);
+}
+#frameInput {
+  background-color: var(--body-background);
+  color: var(--body-color);
+}
+#frameInput {
+  color: var(--body-mute-color);
+}
+@media screen and (max-width: 1000px) {
+  .modal {
+    width: 75%;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .modal {
+    width: 98%;
+  }
 }
