@@ -13,12 +13,14 @@ const TagInput = ({
   placeholder,
   suggestions,
   disabled,
+  isAllowNew = true,
 }: {
   tags: tagType[];
   setTags: (tags: tagType[]) => void;
   placeholder: string;
   suggestions: tagType[];
   disabled?: boolean;
+  isAllowNew?: boolean;
 }) => {
   const onDelete = useCallback(
     (tagIndex: number) => {
@@ -40,7 +42,7 @@ const TagInput = ({
       isDisabled={disabled}
       delimiterKeys={[" ", "Enter"]}
       activateFirstOption
-      allowNew
+      allowNew={isAllowNew}
       placeholderText={placeholder}
       selected={tags}
       suggestions={suggestions}

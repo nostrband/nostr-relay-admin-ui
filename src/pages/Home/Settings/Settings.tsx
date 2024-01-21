@@ -12,15 +12,15 @@ import {
 } from "react-bootstrap-icons";
 import { useSearchParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
-import Select, { ActionMeta } from "react-select";
+import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import ReactModal from "react-modal";
 import {
   allLetters,
   kindsSuggestions,
   relaysSuggestions,
-  typesSuggestions,
 } from "../../../utils/inputSuggestions";
+import Rule from "../../../models/RuleModel";
 
 const animatedComponents = makeAnimated();
 
@@ -47,6 +47,7 @@ const Settings = () => {
   const [sinceDate, setSinceDate] = useState<Date | null>(null);
   const [isModal, setIsModal] = useState(false);
   const [ruleName, setRuleName] = useState("");
+  const [selectTypeValue, setSelectTypeValue] = useState<OptionType | null>();
   const [letterValues, setLetterValues] = useState<{ [key: string]: string }>(
     {},
   );
@@ -96,11 +97,11 @@ const Settings = () => {
     },
   ]);
 
-  const handleLetterChange = (
-    selectedOptions: OptionType[] | null,
-    actionMeta: ActionMeta<OptionType>,
-  ) => {
+  const handleLetterChange = (selectedOptions: OptionType[] | null) => {
     setSelectedLetters(selectedOptions);
+  };
+  const handleTypeChange = (selectedOption: OptionType | null) => {
+    setSelectTypeValue(selectedOption);
   };
 
   const handleValueChange = (
@@ -124,7 +125,6 @@ const Settings = () => {
   const closeModal = () => setIsModal(false);
 
   useEffect(() => {
-    setIsEditActive(false);
     const rule = selectedRule;
     setSelectedRule(rule);
     setKinds(
@@ -176,20 +176,24 @@ const Settings = () => {
   const theDayAfterSinceDate = new Date(sinceDate ?? "");
 
   const openAddModal = () => {
-    const newRule: ruleType = {
-      id: Date.now() * Math.random() * 10,
-      name: "",
-      type: "",
-      filter: {
-        relays: [],
-        kinds: [],
-        ids: [],
-        authors: [],
-      },
-    };
-    setSelectedRule(newRule);
+    setSelectedRule(new Rule());
+    setIsEditActive(true);
     setModalType("addModal");
     setIsModal(true);
+  };
+
+  const addRule = () => {
+    const newRule = new Rule();
+    newRule.setName(ruleName);
+    newRule.setType(selectTypeValue?.value ?? "");
+    newRule.filter = {
+      kinds: kinds.map((k) => k.label),
+      relays: relays.map((r) => r.label),
+    };
+    setRules((prevState) => [...prevState, newRule]);
+    setIsModal(false);
+    setIsEditActive(false);
+    setModalType("editType");
   };
 
   return (
@@ -242,7 +246,7 @@ const Settings = () => {
             </tr>
           </thead>
           <tbody>
-            {rules.map((rule) => {
+            {rules.map((rule, index) => {
               return (
                 <tr
                   key={rule.id}
@@ -252,7 +256,7 @@ const Settings = () => {
                     setIsModal(true);
                   }}
                 >
-                  <td>{rule.id}</td>
+                  <td>{index + 1}</td>
                   <td>{rule.name}</td>
                   <td>{rule.type}</td>
                 </tr>
@@ -288,12 +292,16 @@ const Settings = () => {
                   onChange={(e) => setRuleName(e.target.value)}
                 />
                 <Form.Label>Example: Rule 1</Form.Label>
-                <TagInput
-                  disabled={!isEditActive}
-                  suggestions={typesSuggestions}
+                <Select
+                  required
+                  value={selectTypeValue}
                   placeholder="Type"
-                  tags={types}
-                  setTags={setTypes}
+                  onChange={handleTypeChange}
+                  options={[
+                    { value: "import", label: "Import" },
+                    { value: "review", label: "Review" },
+                    { value: "block", label: "Block" },
+                  ]}
                 />
                 <Form.Label>Example: import, review or block</Form.Label>
                 <TagInput
@@ -414,13 +422,18 @@ const Settings = () => {
                     {modalType === "editType" ? (
                       <Button variant="success">Save</Button>
                     ) : (
-                      <Button variant="success">Add Rule</Button>
+                      <Button variant="success" onClick={addRule} type="submit">
+                        Add Rule
+                      </Button>
                     )}
 
                     <Button
                       variant="danger"
                       style={{ marginLeft: ".5rem" }}
-                      onClick={() => setIsEditActive(false)}
+                      onClick={() => {
+                        setIsEditActive(false);
+                        setIsModal(false);
+                      }}
                     >
                       Cancel
                     </Button>
