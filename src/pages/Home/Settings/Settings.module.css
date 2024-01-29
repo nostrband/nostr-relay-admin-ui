@@ -73,7 +73,7 @@
   height: max-content;
   transform: translate(-50%, -50%);
   z-index: 6;
-  padding: 1rem 2.5rem;
+  padding: 2.5rem 2rem 1rem;
   background-color: var(--body-background);
   color: var(--body-color);
   border: 1px solid rgb(204, 204, 204);
@@ -88,7 +88,11 @@
 .modalContent p {
   word-wrap: break-word;
 }
-
+.modalCloseButton {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
 .modalFooter {
   float: right;
 }

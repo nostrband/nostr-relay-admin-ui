@@ -26,6 +26,7 @@ const TagInput = ({
     (tagIndex: number) => {
       setTags(tags.filter((_, i) => i !== tagIndex));
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tags],
   );
 
@@ -34,6 +35,7 @@ const TagInput = ({
       const newTagTrim = { ...newTag, label: newTag.label.replaceAll(" ", "") };
       setTags([...tags, newTagTrim]);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tags],
   );
 

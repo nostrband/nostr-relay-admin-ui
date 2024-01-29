@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import PostCard from "../../../components/PostCard/PostCard";
-import { nostrApiType } from "../../../types/types";
-import axios from "axios";
 import { nip19 } from "@nostrband/nostr-tools";
 import { extractNostrStrings } from "../../../utils/formatLink";
 import NDK, { NDKEvent } from "@nostrband/ndk";
@@ -258,6 +256,7 @@ const Events = () => {
         fetchPosts();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ndk, searchParams.get("q")]);
 
   return (

@@ -9,6 +9,7 @@ import {
   Pencil,
   PlusCircle,
   Trash,
+  X,
   XSquare,
 } from "react-bootstrap-icons";
 import { useSearchParams } from "react-router-dom";
@@ -22,8 +23,6 @@ import {
   relaysSuggestions,
 } from "../../../utils/inputSuggestions";
 import Rule from "../../../models/RuleModel";
-
-const animatedComponents = makeAnimated();
 
 type tagType = {
   value: number;
@@ -127,6 +126,7 @@ const Settings = () => {
       const importRule = rules.find((r) => r.id === 1);
       setSelectedRule(importRule);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getAvailableLetters = (index: number) => {
@@ -193,6 +193,7 @@ const Settings = () => {
     }
     setAuthors(rule?.filter.authors?.toString() ?? "");
     setIds(rule?.filter.ids?.toString() ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRule]);
 
   useEffect(() => {
@@ -208,6 +209,7 @@ const Settings = () => {
 
       setLetterValues(updatedLetterValues);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRule]);
 
   const cancelRelaysEdit = () => {
@@ -354,6 +356,13 @@ const Settings = () => {
           isOpen={isModal}
           onRequestClose={closeModal}
         >
+          <Button
+            onClick={closeModal}
+            className={cl.modalCloseButton}
+            variant="outline-danger"
+          >
+            <X />
+          </Button>
           {selectedRule && (
             <div className={cl.selectedRule}>
               <Form>
