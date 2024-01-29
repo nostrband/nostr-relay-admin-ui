@@ -1,6 +1,11 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import userReducer from "./reducers/UserSlice";
 import connectionReducer from "./reducers/ConnectionSlice";
+import { getDefaultMiddleware } from '@reduxjs/toolkit';
+
+const customizedMiddleware = getDefaultMiddleware({
+  serializableCheck: false
+})
 
 const rootReducer = combineReducers({
   userReducer,
@@ -10,6 +15,7 @@ const rootReducer = combineReducers({
 export const setupStore = () => {
   return configureStore({
     reducer: rootReducer,
+    middleware: customizedMiddleware,
     devTools: true,
   });
 };
