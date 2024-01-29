@@ -1,14 +1,14 @@
 import { Container, Row, Col } from "react-bootstrap";
 import Home from "./pages/Home/Home";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect } from "react";
 import { Route, Routes } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "./hooks/redux";
-import { userSlice } from "./store/reducers/UserSlice";
+import { useAppSelector } from "./hooks/redux";
 
 function App() {
   const { ndk } = useAppSelector((store) => store.connectionReducer);
   useLayoutEffect(() => {
     ndk.connect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
