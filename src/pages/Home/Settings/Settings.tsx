@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import TagInput from "../../../components/TagInput/TagInput";
 import cl from "./Settings.module.css";
-import { ruleType } from "../../../types/types";
+import { Filter, ruleType } from "../../../types/types";
 import { Button, Form, Table } from "react-bootstrap";
 import {
   Check2Square,
@@ -15,7 +15,6 @@ import {
 import { useSearchParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import Select from "react-select";
-import makeAnimated from "react-select/animated";
 import ReactModal from "react-modal";
 import {
   allLetters,
@@ -23,6 +22,8 @@ import {
   relaysSuggestions,
 } from "../../../utils/inputSuggestions";
 import Rule from "../../../models/RuleModel";
+import { sendPostAuth } from "../../../http/http";
+import { useAppSelector } from "../../../hooks/redux";
 
 type tagType = {
   value: number;
@@ -63,45 +64,10 @@ const Settings = () => {
   const [isEditRelays, setIsEditRelays] = useState(false);
   const [modalType, setModalType] = useState("editType");
   const [tableData, setTableData] = useState<TableData[]>([]);
-  const [rules, setRules] = useState<ruleType[]>([
-    {
-      id: 1,
-      name: "Rule 1",
-      type: "import",
-      filter: {
-        relays: ["Реле 1"],
-        kinds: ["Profiles"],
-        authors: ["author1, author2"],
-        ids: ["id1, id2"],
-        "#a": ["valueA"],
-        "#b": ["valueB"],
-      },
-    },
-    {
-      id: 2,
-      name: "Rule 2",
-      type: "review",
-      filter: {
-        relays: ["Реле 2"],
-        kinds: ["Posts"],
-        authors: ["author2"],
-        "#c": ["valueC"],
-        "#d": ["valueD"],
-      },
-    },
-    {
-      id: 3,
-      name: "Rule 3",
-      type: "block",
-      filter: {
-        relays: ["Реле 2"],
-        kinds: ["kind2"],
-        authors: ["author2"],
-        "#f": ["valueF"],
-        "#j": ["valueJ"],
-      },
-    },
-  ]);
+  const [rules, setRules] = useState<ruleType[]>([]);
+  const { ndk } = useAppSelector((store) => store.connectionReducer);
+  const store = useAppSelector((store) => store.userReducer);
+  const url = `http://localhost:4000/rules`;
 
   const handleLetterChange = (selectedOptions: OptionType[] | null) => {
     setSelectedLetters(selectedOptions);
@@ -116,6 +82,18 @@ const Settings = () => {
   ) => {
     const newLetterValues = { ...letterValues, [letter]: event.target.value };
     setLetterValues(newLetterValues);
+  };
+
+  const fetchRules = async () => {
+    if (store.user?.pubkey) {
+      const data: ruleType[] = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        url,
+        "GET",
+      );
+      setRules(data);
+    }
   };
 
   useLayoutEffect(() => {
@@ -167,43 +145,67 @@ const Settings = () => {
   const closeModal = () => setIsModal(false);
 
   useEffect(() => {
+    fetchRules();
+  }, []);
+
+  useEffect(() => {
     const rule = selectedRule;
+    let ruleFilter: Filter = {};
+    if (typeof selectedRule?.filter === "string") {
+      ruleFilter = JSON.parse(selectedRule?.filter);
+    }
+    const { authors, kinds, relays, ids, ...ruleLetters } = ruleFilter;
+    const newTableData: TableData[] = [];
+    for (const key in ruleLetters) {
+      newTableData.push({
+        letter: key.split("#")[1],
+        value: `${ruleLetters[key]}`,
+      });
+    }
+    setTableData(newTableData);
     setSelectedRule(rule);
     setKinds(
-      rule?.filter.kinds?.map((k, i) => {
+      ruleFilter.kinds?.map((k, i) => {
         return { value: i, label: k };
       }) ?? [],
     );
     setSelectedRelays(
-      rule?.filter.relays?.map((k, i) => {
+      ruleFilter.relays?.map((k, i) => {
         return { value: i, label: k };
       }) ?? [],
     );
     setRuleName(rule?.name ?? "");
+    const ruleType = rule?.type;
+    if (ruleType) {
+      handleTypeChange({ value: ruleType, label: ruleType });
+    }
     if (rule) {
       const updatedSelectedLetters = allLetters
-        .filter((letter) => rule.filter[`#${letter}`]?.[0] !== undefined)
+        .filter((letter) => ruleFilter[`#${letter}`]?.[0] !== undefined)
         .map((letter) => ({ value: `#${letter}`, label: `#${letter}` }));
       setSelectedLetters(updatedSelectedLetters);
 
-      Object.keys(rule.filter).forEach((key) => {
-        const value = rule.filter[key]?.[0] || "";
+      Object.keys(ruleFilter).forEach((key) => {
+        const value = ruleFilter[key]?.[0] || "";
         setLetterValues((prevValues) => ({ ...prevValues, [key]: value }));
       });
     }
-    setAuthors(rule?.filter.authors?.toString() ?? "");
-    setIds(rule?.filter.ids?.toString() ?? "");
+    setAuthors(ruleFilter.authors?.toString() ?? "");
+    setIds(ruleFilter.ids?.toString() ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRule]);
 
   useEffect(() => {
-    const currentRule = rules.find(
-      (rule) => rule.id === Number(searchParams.get("ruleId")),
-    );
+    const currentRule = selectedRule;
+    let ruleFilter: Filter = {};
+    if (typeof selectedRule?.filter === "string") {
+      ruleFilter = JSON.parse(selectedRule?.filter);
+    }
+
     if (currentRule) {
       const updatedLetterValues: { [key: string]: string } = {};
-      Object.keys(currentRule.filter).forEach((key) => {
-        const value = currentRule.filter[key]?.[0] || "";
+      Object.keys(ruleFilter).forEach((key) => {
+        const value = ruleFilter[key]?.[0] || "";
         updatedLetterValues[key] = value;
       });
 
@@ -226,7 +228,7 @@ const Settings = () => {
     setIsModal(true);
   };
 
-  const addRule = () => {
+  const addRule = async () => {
     const newRule = new Rule();
     newRule.setName(ruleName);
     newRule.setType(selectTypeValue?.value ?? "");
@@ -238,19 +240,39 @@ const Settings = () => {
       authors: [authors],
       ids: [ids],
     };
+
+    if (store.user?.pubkey) {
+      const res = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        url,
+        "POST",
+        JSON.stringify(newRule),
+      );
+      console.log(res);
+    }
     setRules((prevState) => [...prevState, newRule]);
     setIsModal(false);
     setIsEditActive(false);
     setModalType("editType");
   };
 
-  const removeRule = (
+  const removeRule = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    rule: ruleType,
+    id: number,
   ) => {
     e.stopPropagation();
-    const newRules = rules.filter((r) => r.id !== rule.id);
-    setRules(newRules);
+    if (store.user?.pubkey) {
+      const res = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        url,
+        "DELETE",
+        "",
+        id,
+      );
+      console.log(res);
+    }
   };
 
   return (
@@ -323,7 +345,7 @@ const Settings = () => {
                       {
                         <Button
                           size="sm"
-                          onClick={(e) => removeRule(e, rule)}
+                          onClick={(e) => removeRule(e, rule.id)}
                           variant="outline-danger"
                         >
                           <Trash />
@@ -383,6 +405,7 @@ const Settings = () => {
                   required
                   value={selectTypeValue}
                   placeholder="Type"
+                  isDisabled={!isEditActive}
                   onChange={handleTypeChange}
                   options={[
                     { value: "import", label: "Import" },
@@ -509,26 +532,16 @@ const Settings = () => {
                     </tbody>
                   </Table>
                 ) : (
-                  <Button
-                    className="mt-2"
-                    variant="light"
-                    disabled={!isEditActive}
-                    onClick={handleAddRow}
-                  >
-                    Open Table
-                  </Button>
-                )}
-                {tableData.length ? (
-                  <Button
-                    variant="light"
-                    disabled={!isEditActive}
-                    onClick={handleAddRow}
-                  >
-                    Add Row
-                  </Button>
-                ) : (
                   ""
                 )}
+                <Button
+                  variant="light"
+                  className="mt-1"
+                  disabled={!isEditActive}
+                  onClick={handleAddRow}
+                >
+                  Add Tag
+                </Button>
 
                 <div className={cl.controlPanel}>
                   {!isEditActive && modalType === "editType" ? (
@@ -538,13 +551,9 @@ const Settings = () => {
                   ) : (
                     <>
                       {modalType === "editType" ? (
-                        <Button variant="success" type="submit">
-                          Save
-                        </Button>
+                        <Button variant="success">Save</Button>
                       ) : (
-                        <Button type="submit" onClick={addRule}>
-                          Add Rule
-                        </Button>
+                        <Button onClick={addRule}>Add Rule</Button>
                       )}
 
                       <Button

@@ -8,16 +8,15 @@ import { userSlice } from "./store/reducers/UserSlice";
 import ReactModal from "react-modal";
 import { X } from "react-bootstrap-icons";
 import "./App.css";
-import { NDKNip07Signer } from "@nostrband/ndk";
+import { sendPostAuth } from "./http/http";
 
 function App() {
   const [isModal, setIsModal] = useState<boolean>(false);
   const { ndk } = useAppSelector((store) => store.connectionReducer);
   const store = useAppSelector((store) => store.userReducer);
   const dispatch = useAppDispatch();
-  const { setIsAuth, setUser } =
-    userSlice.actions;
-    
+  const { setIsAuth, setUser } = userSlice.actions;
+
   useLayoutEffect(() => {
     ndk.connect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -32,7 +31,7 @@ function App() {
   useEffect(() => {
     (async () => {
       const pubkey = localStorage.getItem("login");
-      
+
       if (pubkey) {
         getUser(pubkey);
       }
@@ -57,69 +56,78 @@ function App() {
   return (
     <Container>
       <ReactModal
-          isOpen={isModal}
-          onAfterOpen={() => {
-            document.body.style.overflow = "hidden";
-          }}
-          onAfterClose={() => {
-            document.body.style.overflow = "auto";
-          }}
-          onRequestClose={closeModal}
-          ariaHideApp={false}
-          className="login-modal"
-          style={{ overlay: { zIndex: 6, background: "rgba(0,0,0,.4)" } }}
-        >
-          <div className="modal-header">
-            <h4>Login</h4>
-            <Button
-              variant="link"
-              style={{ fontSize: "1.8rem", color: "black" }}
-              onClick={closeModal}
+        isOpen={isModal}
+        onAfterOpen={() => {
+          document.body.style.overflow = "hidden";
+        }}
+        onAfterClose={() => {
+          document.body.style.overflow = "auto";
+        }}
+        onRequestClose={closeModal}
+        ariaHideApp={false}
+        className="login-modal"
+        style={{ overlay: { zIndex: 6, background: "rgba(0,0,0,.4)" } }}
+      >
+        <div className="modal-header">
+          <h4>Login</h4>
+          <Button
+            variant="link"
+            style={{ fontSize: "1.8rem", color: "black" }}
+            onClick={closeModal}
+          >
+            <X color="var(--body-color)" />
+          </Button>
+        </div>
+        <hr />
+        <div className="modal-body">
+          <div>
+            <Button variant="outline-primary" onClick={loginBtn}>
+              Login with browser extension
+            </Button>
+          </div>
+          <p className="mt-2">
+            Please login using Nostr browser extension. You can try{" "}
+            <a href="https://getalby.com/" target="_blank">
+              Alby
+            </a>
+            ,{" "}
+            <a
+              href="https://chrome.google.com/webstore/detail/nos2x/kpgefcfmnafjgpblomihpgmejjdanjjp"
+              target="_blank"
             >
-              <X color="var(--body-color)" />
-            </Button>
-          </div>
-          <hr />
-          <div className="modal-body">
-            <div>
-              <Button variant="outline-primary" onClick={loginBtn}>
-                Login with browser extension
-              </Button>
-            </div>
-            <p className="mt-2">
-              Please login using Nostr browser extension. You can try{" "}
-              <a href="https://getalby.com/" target="_blank">
-                Alby
-              </a>
-              ,{" "}
-              <a
-                href="https://chrome.google.com/webstore/detail/nos2x/kpgefcfmnafjgpblomihpgmejjdanjjp"
-                target="_blank"
-              >
-                nos2x
-              </a>{" "}
-              or{" "}
-              <a
-                href="https://testflight.apple.com/join/ouPWAQAV"
-                target="_blank"
-              >
-                Nostore
-              </a>{" "}
-              (for Safari).
-            </p>
-          </div>
-          <hr />
-          <div className="modal-footer">
-            <Button variant="secondary" onClick={closeModal}>
-              Close
-            </Button>
-          </div>
-        </ReactModal>
+              nos2x
+            </a>{" "}
+            or{" "}
+            <a
+              href="https://testflight.apple.com/join/ouPWAQAV"
+              target="_blank"
+            >
+              Nostore
+            </a>{" "}
+            (for Safari).
+          </p>
+        </div>
+        <hr />
+        <div className="modal-footer">
+          <Button variant="secondary" onClick={closeModal}>
+            Close
+          </Button>
+        </div>
+      </ReactModal>
       <Row className="justify-content-lg-center">
         <Col lg={9}>
           <div className="header">
-          <h3>Nostr Dashboard</h3>
-          {!store.isAuth ? <Button variant="outline-primary" onClick={() => setIsModal(true)}>Login</Button> : <p>{store.user?.display_name ?? store.user?.name}</p>}
+            <h3>Nostr Dashboard</h3>
+            {!store.isAuth ? (
+              <Button
+                variant="outline-primary"
+                onClick={() => setIsModal(true)}
+              >
+                Login
+              </Button>
+            ) : (
+              <p>{store.user?.display_name ?? store.user?.name}</p>
+            )}
           </div>
           <Routes>
             <Route path="/" element={<Home ndk={ndk} />} />
