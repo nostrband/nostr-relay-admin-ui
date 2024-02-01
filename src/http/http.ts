@@ -30,16 +30,19 @@ export const sendPostAuth = async (
   const encodedString = btoa(JSON.stringify(authEvent.rawEvent()));
 
   if (method === "GET") {
-    const { data } = await axios.get("http://localhost:4000/rules", {
-      headers: {
-        Authorization: `Nostr ${encodedString}`,
+    const { data } = await axios.get(
+      `${process.env.REACT_APP_API_URL_RULES}/rules`,
+      {
+        headers: {
+          Authorization: `Nostr ${encodedString}`,
+        },
       },
-    });
+    );
     return data;
   }
   if (method === "DELETE") {
     const { data } = await axios.delete(
-      `http://localhost:4000/rules/${ruleId}`,
+      `${process.env.REACT_APP_API_URL_RULES}/rules/${ruleId}`,
       {
         headers: {
           Authorization: `Nostr ${encodedString}`,
@@ -50,7 +53,7 @@ export const sendPostAuth = async (
   }
   if (method === "POST" && body) {
     const { data } = await axios.post(
-      `http://localhost:4000/rules`,
+      `${process.env.REACT_APP_API_URL_RULES}/rules`,
       JSON.parse(body),
       {
         headers: {
@@ -64,7 +67,7 @@ export const sendPostAuth = async (
     console.log(ruleId);
 
     const { data } = await axios.put(
-      `http://localhost:4000/rules/${ruleId}`,
+      `${process.env.REACT_APP_API_URL_RULES}/rules/${ruleId}`,
       JSON.parse(body),
       {
         headers: {

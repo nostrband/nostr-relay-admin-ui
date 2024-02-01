@@ -69,7 +69,7 @@ const Settings = () => {
   const [isFormValidate, setIsFormValidate] = useState(false);
   const { ndk } = useAppSelector((store) => store.connectionReducer);
   const store = useAppSelector((store) => store.userReducer);
-  const url = `http://localhost:4000/rules`;
+  const url = `${process.env.REACT_APP_API_URL_RULES}/rules`;
 
   const handleLetterChange = (selectedOptions: OptionType[] | null) => {
     setSelectedLetters(selectedOptions);
@@ -347,7 +347,6 @@ const Settings = () => {
         id,
       );
       fetchRules();
-      console.log(res);
     }
     setIsModal(false);
   };
@@ -367,6 +366,9 @@ const Settings = () => {
         id,
       );
       console.log(res);
+      if (res.success) {
+        fetchRules();
+      }
     }
   };
 
