@@ -60,6 +60,20 @@ export const sendPostAuth = async (
     );
     return data;
   }
+  if (method === "PUT" && body) {
+    console.log(ruleId);
+
+    const { data } = await axios.put(
+      `http://localhost:4000/rules/${ruleId}`,
+      JSON.parse(body),
+      {
+        headers: {
+          Authorization: `Nostr ${encodedString}`,
+        },
+      },
+    );
+    return data;
+  }
 
   return null;
 };

@@ -6,7 +6,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Settings from "./Settings/Settings";
 
-const Home = ({ ndk }: { ndk: NDK | null }) => {
+const Home = () => {
   const [searchParams] = useSearchParams();
   const [panel, setPanel] = useState(
     searchParams.get("trending") ? searchParams.get("trending") : "people",

@@ -118,6 +118,11 @@ export type nostrApiType = {
   };
 };
 
+export interface TableData {
+  letter: string;
+  value: string;
+}
+
 export type nostrPeopleType = {
   new_followers_count: number;
   pubkey: string;
@@ -152,7 +157,9 @@ export type Filter = {
   kinds?: string[];
   ids?: string[];
   authors?: string[];
-  [key: string]: string[] | undefined;
+  since?: number;
+  until?: number;
+  [key: string]: string[] | number | undefined;
 };
 
 export type ruleType = {

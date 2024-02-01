@@ -130,7 +130,7 @@ function App() {
             )}
           </div>
           <Routes>
-            <Route path="/" element={<Home ndk={ndk} />} />
+            <Route path="/" element={<Home />} />
           </Routes>
         </Col>
       </Row>
