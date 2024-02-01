@@ -1,28 +1,28 @@
 export const kindsSuggestions = [
   {
-    value: 1,
+    value: 100,
     label: "Profiles",
   },
   {
-    value: 2,
+    value: 101,
     label: "Posts",
   },
   {
-    value: 3,
+    value: 102,
     label: "Zaps",
   },
 ];
 export const relaysSuggestions = [
   {
-    value: 1,
+    value: 100,
     label: "relay.damus.io",
   },
   {
-    value: 2,
+    value: 101,
     label: "relay.nostr.ai",
   },
   {
-    value: 3,
+    value: 102,
     label: "wss://relay.nostr.band",
   },
 ];

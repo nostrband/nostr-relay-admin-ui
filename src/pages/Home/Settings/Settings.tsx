@@ -70,6 +70,7 @@ const Settings = () => {
   const { ndk } = useAppSelector((store) => store.connectionReducer);
   const store = useAppSelector((store) => store.userReducer);
   const url = `${process.env.REACT_APP_API_URL_RULES}/rules`;
+  const urlRelays = `${process.env.REACT_APP_API_URL_RULES}/relays`;
 
   const handleLetterChange = (selectedOptions: OptionType[] | null) => {
     setSelectedLetters(selectedOptions);
@@ -95,6 +96,25 @@ const Settings = () => {
         "GET",
       );
       setRules(data);
+    }
+  };
+  const fetchRelays = async () => {
+    if (store.user?.pubkey) {
+      const data: string[] = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        urlRelays,
+        "GET",
+      );
+      const relays: tagType[] = data?.length
+        ? data.map((relay, index) => {
+            return {
+              value: index,
+              label: relay,
+            };
+          })
+        : [];
+      setRelays(relays);
     }
   };
 
@@ -156,6 +176,7 @@ const Settings = () => {
 
   useEffect(() => {
     fetchRules();
+    fetchRelays();
   }, [store.user?.pubkey]);
 
   useEffect(() => {
@@ -372,6 +393,22 @@ const Settings = () => {
     }
   };
 
+  const saveRelays = async () => {
+    const updatedRelays = relays.map((relay) => relay.label);
+    if (store.user?.pubkey) {
+      const res = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        urlRelays,
+        "PUT",
+        JSON.stringify({ relay_array: updatedRelays }),
+      );
+      console.log(res);
+
+      fetchRelays();
+    }
+  };
+
   return (
     <div className={cl.settings}>
       <h4>Settings</h4>
@@ -395,7 +432,7 @@ const Settings = () => {
               </Button>
             ) : (
               <>
-                <Button variant="outline-success">
+                <Button onClick={saveRelays} variant="outline-success">
                   <Check2Square />
                 </Button>
                 <Button onClick={cancelRelaysEdit} variant="outline-danger">

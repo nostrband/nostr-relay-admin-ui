@@ -30,14 +30,11 @@ export const sendPostAuth = async (
   const encodedString = btoa(JSON.stringify(authEvent.rawEvent()));
 
   if (method === "GET") {
-    const { data } = await axios.get(
-      `${process.env.REACT_APP_API_URL_RULES}/rules`,
-      {
-        headers: {
-          Authorization: `Nostr ${encodedString}`,
-        },
+    const { data } = await axios.get(url, {
+      headers: {
+        Authorization: `Nostr ${encodedString}`,
       },
-    );
+    });
     return data;
   }
   if (method === "DELETE") {
@@ -64,17 +61,12 @@ export const sendPostAuth = async (
     return data;
   }
   if (method === "PUT" && body) {
-    console.log(ruleId);
-
-    const { data } = await axios.put(
-      `${process.env.REACT_APP_API_URL_RULES}/rules/${ruleId}`,
-      JSON.parse(body),
-      {
-        headers: {
-          Authorization: `Nostr ${encodedString}`,
-        },
+    const currentUrl = url.includes("rules") ? `${url}/${ruleId}` : url;
+    const { data } = await axios.put(currentUrl, JSON.parse(body), {
+      headers: {
+        Authorization: `Nostr ${encodedString}`,
       },
-    );
+    });
     return data;
   }
 
