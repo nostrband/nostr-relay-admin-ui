@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import TagInput from "../../../components/TagInput/TagInput";
 import cl from "./Settings.module.css";
-import { ruleType } from "../../../types/types";
+import { Filter, ruleType } from "../../../types/types";
 import { Button, Form, Table } from "react-bootstrap";
 import {
   Check2Square,
@@ -15,7 +15,6 @@ import {
 import { useSearchParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import Select from "react-select";
-import makeAnimated from "react-select/animated";
 import ReactModal from "react-modal";
 import {
   allLetters,
@@ -23,6 +22,9 @@ import {
   relaysSuggestions,
 } from "../../../utils/inputSuggestions";
 import Rule from "../../../models/RuleModel";
+import { sendPostAuth } from "../../../http/http";
+import { useAppSelector } from "../../../hooks/redux";
+import { dateToUnix } from "nostr-react";
 
 type tagType = {
   value: number;
@@ -49,7 +51,7 @@ const Settings = () => {
   const [authors, setAuthors] = useState<string>("");
   const [ids, setIds] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | null>(null);
-  const [sinceDate, setSinceDate] = useState<Date | null>(null);
+  const [untilDate, setUntilDate] = useState<Date | null>(null);
   const [isModal, setIsModal] = useState(false);
   const [ruleName, setRuleName] = useState("");
   const [selectTypeValue, setSelectTypeValue] = useState<OptionType | null>();
@@ -63,45 +65,11 @@ const Settings = () => {
   const [isEditRelays, setIsEditRelays] = useState(false);
   const [modalType, setModalType] = useState("editType");
   const [tableData, setTableData] = useState<TableData[]>([]);
-  const [rules, setRules] = useState<ruleType[]>([
-    {
-      id: 1,
-      name: "Rule 1",
-      type: "import",
-      filter: {
-        relays: ["Реле 1"],
-        kinds: ["Profiles"],
-        authors: ["author1, author2"],
-        ids: ["id1, id2"],
-        "#a": ["valueA"],
-        "#b": ["valueB"],
-      },
-    },
-    {
-      id: 2,
-      name: "Rule 2",
-      type: "review",
-      filter: {
-        relays: ["Реле 2"],
-        kinds: ["Posts"],
-        authors: ["author2"],
-        "#c": ["valueC"],
-        "#d": ["valueD"],
-      },
-    },
-    {
-      id: 3,
-      name: "Rule 3",
-      type: "block",
-      filter: {
-        relays: ["Реле 2"],
-        kinds: ["kind2"],
-        authors: ["author2"],
-        "#f": ["valueF"],
-        "#j": ["valueJ"],
-      },
-    },
-  ]);
+  const [rules, setRules] = useState<ruleType[]>([]);
+  const [isFormValidate, setIsFormValidate] = useState(false);
+  const { ndk } = useAppSelector((store) => store.connectionReducer);
+  const store = useAppSelector((store) => store.userReducer);
+  const url = `${process.env.REACT_APP_API_URL_RULES}/rules`;
 
   const handleLetterChange = (selectedOptions: OptionType[] | null) => {
     setSelectedLetters(selectedOptions);
@@ -118,6 +86,18 @@ const Settings = () => {
     setLetterValues(newLetterValues);
   };
 
+  const fetchRules = async () => {
+    if (store.user?.pubkey) {
+      const data: ruleType[] = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        url,
+        "GET",
+      );
+      setRules(data);
+    }
+  };
+
   useLayoutEffect(() => {
     const rule = selectedRule;
     if (rule) {
@@ -128,6 +108,14 @@ const Settings = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (ruleName.length && selectTypeValue?.value) {
+      setIsFormValidate(true);
+    } else {
+      setIsFormValidate(false);
+    }
+  }, [ruleName, selectTypeValue]);
 
   const getAvailableLetters = (index: number) => {
     const usedLetters = tableData.map((data) => data.letter);
@@ -167,43 +155,74 @@ const Settings = () => {
   const closeModal = () => setIsModal(false);
 
   useEffect(() => {
+    fetchRules();
+  }, [store.user?.pubkey]);
+
+  useEffect(() => {
     const rule = selectedRule;
+    let ruleFilter: Filter = {};
+    if (typeof selectedRule?.filter === "string") {
+      ruleFilter = JSON.parse(selectedRule?.filter);
+    }
+    const { authors, kinds, relays, ids, since, until, ...ruleLetters } =
+      ruleFilter;
+    const newTableData: TableData[] = [];
+    for (const key in ruleLetters) {
+      newTableData.push({
+        letter: key.split("#")[1],
+        value: `${ruleLetters[key]}`,
+      });
+    }
+    setTableData(newTableData);
     setSelectedRule(rule);
     setKinds(
-      rule?.filter.kinds?.map((k, i) => {
+      ruleFilter.kinds?.map((k, i) => {
         return { value: i, label: k };
       }) ?? [],
     );
     setSelectedRelays(
-      rule?.filter.relays?.map((k, i) => {
+      ruleFilter.relays?.map((k, i) => {
         return { value: i, label: k };
       }) ?? [],
     );
     setRuleName(rule?.name ?? "");
+    const ruleType = rule?.type;
+    if (ruleType) {
+      handleTypeChange({ value: ruleType, label: ruleType });
+    }
+    setStartDate(ruleFilter.since ? new Date(ruleFilter.since * 1000) : null);
+    setUntilDate(ruleFilter.until ? new Date(ruleFilter.until * 1000) : null);
     if (rule) {
       const updatedSelectedLetters = allLetters
-        .filter((letter) => rule.filter[`#${letter}`]?.[0] !== undefined)
+        .filter(
+          (letter) =>
+            (ruleFilter[`#${letter}`] as string[] | undefined)?.[0] !==
+            undefined,
+        )
         .map((letter) => ({ value: `#${letter}`, label: `#${letter}` }));
       setSelectedLetters(updatedSelectedLetters);
 
-      Object.keys(rule.filter).forEach((key) => {
-        const value = rule.filter[key]?.[0] || "";
+      Object.keys(ruleFilter).forEach((key) => {
+        const value = (ruleFilter[key] as string[] | undefined)?.[0] || "";
         setLetterValues((prevValues) => ({ ...prevValues, [key]: value }));
       });
     }
-    setAuthors(rule?.filter.authors?.toString() ?? "");
-    setIds(rule?.filter.ids?.toString() ?? "");
+    setAuthors(ruleFilter.authors?.toString() ?? "");
+    setIds(ruleFilter.ids?.toString() ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRule]);
 
   useEffect(() => {
-    const currentRule = rules.find(
-      (rule) => rule.id === Number(searchParams.get("ruleId")),
-    );
+    const currentRule = selectedRule;
+    let ruleFilter: Filter = {};
+    if (typeof selectedRule?.filter === "string") {
+      ruleFilter = JSON.parse(selectedRule?.filter);
+    }
+
     if (currentRule) {
       const updatedLetterValues: { [key: string]: string } = {};
-      Object.keys(currentRule.filter).forEach((key) => {
-        const value = currentRule.filter[key]?.[0] || "";
+      Object.keys(ruleFilter).forEach((key) => {
+        const value = (ruleFilter[key] as string[] | undefined)?.[0] || "";
         updatedLetterValues[key] = value;
       });
 
@@ -217,7 +236,7 @@ const Settings = () => {
   };
 
   const theDayBeforeStartDate = new Date(startDate ?? "");
-  const theDayAfterSinceDate = new Date(sinceDate ?? "");
+  const theDayAfterUntilDate = new Date(untilDate ?? "");
 
   const openAddModal = () => {
     setSelectedRule(new Rule());
@@ -226,7 +245,7 @@ const Settings = () => {
     setIsModal(true);
   };
 
-  const addRule = () => {
+  const addRule = async () => {
     const newRule = new Rule();
     newRule.setName(ruleName);
     newRule.setType(selectTypeValue?.value ?? "");
@@ -238,19 +257,119 @@ const Settings = () => {
       authors: [authors],
       ids: [ids],
     };
-    setRules((prevState) => [...prevState, newRule]);
+
+    if (startDate) {
+      Object.defineProperty(newRule.filter, "since", {
+        value: dateToUnix(startDate),
+        enumerable: true,
+      });
+    }
+
+    if (untilDate) {
+      Object.defineProperty(newRule.filter, "until", {
+        value: dateToUnix(untilDate),
+        enumerable: true,
+      });
+    }
+
+    for (let i = 0; i < tableData.length; i++) {
+      if (tableData[i].letter) {
+        Object.defineProperty(newRule.filter, `#${tableData[i].letter}`, {
+          value: [tableData[i].value],
+          enumerable: true,
+        });
+      }
+    }
+
+    if (store.user?.pubkey) {
+      const res = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        url,
+        "POST",
+        JSON.stringify(newRule),
+      );
+      console.log(res);
+    }
+    fetchRules();
     setIsModal(false);
     setIsEditActive(false);
     setModalType("editType");
   };
 
-  const removeRule = (
+  const updateRule = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    rule: ruleType,
+    id: number,
   ) => {
     e.stopPropagation();
-    const newRules = rules.filter((r) => r.id !== rule.id);
-    setRules(newRules);
+    const updatedRule: ruleType = {
+      id: id,
+      name: ruleName,
+      type: selectTypeValue?.value ?? "import",
+      filter: {
+        kinds: kinds.map((k) => k.label),
+        relays: selectedRelays.length
+          ? selectedRelays.map((r) => r.label)
+          : relays.map((r) => r.label),
+        authors: [authors],
+        ids: [ids],
+      },
+    };
+
+    if (startDate) {
+      Object.defineProperty(updatedRule.filter, "since", {
+        value: dateToUnix(startDate),
+        enumerable: true,
+      });
+    }
+
+    if (untilDate) {
+      Object.defineProperty(updatedRule.filter, "until", {
+        value: dateToUnix(untilDate),
+        enumerable: true,
+      });
+    }
+    for (let i = 0; i < tableData.length; i++) {
+      if (tableData[i].letter) {
+        Object.defineProperty(updatedRule.filter, `#${tableData[i].letter}`, {
+          value: [tableData[i].value],
+          enumerable: true,
+        });
+      }
+    }
+    if (store.user?.pubkey) {
+      const res = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        url,
+        "PUT",
+        JSON.stringify(updatedRule),
+        id,
+      );
+      fetchRules();
+    }
+    setIsModal(false);
+  };
+
+  const removeRule = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    id: number,
+  ) => {
+    e.stopPropagation();
+    if (store.user?.pubkey) {
+      const res = await sendPostAuth(
+        ndk,
+        store.user?.pubkey,
+        url,
+        "DELETE",
+        "",
+        id,
+      );
+      console.log(res);
+      if (res.success) {
+        fetchRules();
+      }
+    }
   };
 
   return (
@@ -323,7 +442,7 @@ const Settings = () => {
                       {
                         <Button
                           size="sm"
-                          onClick={(e) => removeRule(e, rule)}
+                          onClick={(e) => removeRule(e, rule.id)}
                           variant="outline-danger"
                         >
                           <Trash />
@@ -357,11 +476,12 @@ const Settings = () => {
           onRequestClose={closeModal}
         >
           <Button
+            size="sm"
             onClick={closeModal}
             className={cl.modalCloseButton}
-            variant="outline-danger"
+            variant="danger"
           >
-            <X />
+            <X size="22" />
           </Button>
           {selectedRule && (
             <div className={cl.selectedRule}>
@@ -383,6 +503,7 @@ const Settings = () => {
                   required
                   value={selectTypeValue}
                   placeholder="Type"
+                  isDisabled={!isEditActive}
                   onChange={handleTypeChange}
                   options={[
                     { value: "import", label: "Import" },
@@ -433,8 +554,8 @@ const Settings = () => {
                       readOnly={!isEditActive}
                       placeholderText="Since"
                       className="datePickerInput"
-                      selected={sinceDate}
-                      onChange={setSinceDate}
+                      selected={untilDate}
+                      onChange={setUntilDate}
                       dateFormat="yyyy-MM-dd"
                       maxDate={
                         startDate !== null
@@ -459,9 +580,9 @@ const Settings = () => {
                       dateFormat="yyyy-MM-dd"
                       maxDate={new Date()}
                       minDate={
-                        sinceDate !== null
-                          ? theDayAfterSinceDate.setDate(
-                              sinceDate.getDate() + 1,
+                        untilDate !== null
+                          ? theDayAfterUntilDate.setDate(
+                              untilDate.getDate() + 1,
                             )
                           : new Date("2023-01-01")
                       }
@@ -509,26 +630,16 @@ const Settings = () => {
                     </tbody>
                   </Table>
                 ) : (
-                  <Button
-                    className="mt-2"
-                    variant="light"
-                    disabled={!isEditActive}
-                    onClick={handleAddRow}
-                  >
-                    Open Table
-                  </Button>
-                )}
-                {tableData.length ? (
-                  <Button
-                    variant="light"
-                    disabled={!isEditActive}
-                    onClick={handleAddRow}
-                  >
-                    Add Row
-                  </Button>
-                ) : (
                   ""
                 )}
+                <Button
+                  variant="light"
+                  className="mt-1"
+                  disabled={!isEditActive}
+                  onClick={handleAddRow}
+                >
+                  Add Tag
+                </Button>
 
                 <div className={cl.controlPanel}>
                   {!isEditActive && modalType === "editType" ? (
@@ -538,11 +649,14 @@ const Settings = () => {
                   ) : (
                     <>
                       {modalType === "editType" ? (
-                        <Button variant="success" type="submit">
+                        <Button
+                          variant="success"
+                          onClick={(e) => updateRule(e, selectedRule.id)}
+                        >
                           Save
                         </Button>
                       ) : (
-                        <Button type="submit" onClick={addRule}>
+                        <Button onClick={addRule} disabled={!isFormValidate}>
                           Add Rule
                         </Button>
                       )}

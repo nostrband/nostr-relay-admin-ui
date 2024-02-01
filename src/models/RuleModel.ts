@@ -4,7 +4,7 @@ export default class Rule implements ruleType {
   id!: number;
   type!: string;
   filter!: {
-    [key: string]: string[] | undefined;
+    [key: string]: string[] | number | undefined;
     relays?: string[] | undefined;
     kinds?: string[] | undefined;
     ids?: string[] | undefined;

@@ -8,3 +8,6 @@ declare module "react-datepicker";
 declare module "react-helmet";
 declare module "react-tag-autocomplete";
 declare module "react-modal";
+declare module "base-64";
+declare module "crypto";
+declare module "crypto-js/sha256";
