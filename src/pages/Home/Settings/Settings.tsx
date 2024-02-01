@@ -108,14 +108,19 @@ const Settings = () => {
       );
       const relays: tagType[] = data?.length
         ? data.map((relay, index) => {
+            const value = relaysSuggestions.find((r) => relay === r.label)
+              ?.value;
             return {
-              value: index,
+              value: value ?? index,
               label: relay,
             };
           })
         : [];
+      console.log(relays);
+
       setRelays(relays);
     }
+    setIsEditRelays(false);
   };
 
   useLayoutEffect(() => {
