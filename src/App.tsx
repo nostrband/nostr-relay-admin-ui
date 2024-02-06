@@ -8,14 +8,14 @@ import { userSlice } from "./store/reducers/UserSlice";
 import ReactModal from "react-modal";
 import { X } from "react-bootstrap-icons";
 import "./App.css";
-import { sendPostAuth } from "./http/http";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const [isModal, setIsModal] = useState<boolean>(false);
   const { ndk } = useAppSelector((store) => store.connectionReducer);
   const store = useAppSelector((store) => store.userReducer);
   const dispatch = useAppDispatch();
-  const { setIsAuth, setUser } = userSlice.actions;
+  const { setIsAuth, setUser, setPubkey } = userSlice.actions;
 
   useLayoutEffect(() => {
     ndk.connect();
@@ -25,6 +25,7 @@ function App() {
     //@ts-ignore
     const user = await ndk.fetchEvent({ kinds: [0], authors: [pubkey] });
     const userContent = user?.content ? JSON.parse(user.content) : {};
+    dispatch(setPubkey(user?.pubkey));
     dispatch(setUser(userContent));
   };
 
@@ -55,6 +56,7 @@ function App() {
 
   return (
     <Container>
+      <ToastContainer />
       <ReactModal
         isOpen={isModal}
         onAfterOpen={() => {

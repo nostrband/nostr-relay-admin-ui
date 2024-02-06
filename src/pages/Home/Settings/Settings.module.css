@@ -115,6 +115,13 @@
 #frameInput {
   color: var(--body-mute-color);
 }
+
+.loader {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 @media screen and (max-width: 1000px) {
   .modal {
     width: 75%;

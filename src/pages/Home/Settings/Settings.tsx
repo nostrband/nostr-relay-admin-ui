@@ -25,6 +25,8 @@ import Rule from "../../../models/RuleModel";
 import { sendPostAuth } from "../../../http/http";
 import { useAppSelector } from "../../../hooks/redux";
 import { dateToUnix } from "nostr-react";
+import { toast } from "react-toastify";
+import { ThreeDots } from "react-loader-spinner";
 
 type tagType = {
   value: number;
@@ -68,6 +70,7 @@ const Settings = () => {
   const [rules, setRules] = useState<ruleType[]>([]);
   const [isFormValidate, setIsFormValidate] = useState(false);
   const { ndk } = useAppSelector((store) => store.connectionReducer);
+  const [isLoading, setIsLoading] = useState(false);
   const store = useAppSelector((store) => store.userReducer);
   const url = `${process.env.REACT_APP_API_URL_RULES}/rules`;
   const urlRelays = `${process.env.REACT_APP_API_URL_RULES}/relays`;
@@ -88,10 +91,10 @@ const Settings = () => {
   };
 
   const fetchRules = async () => {
-    if (store.user?.pubkey) {
+    if (store.pubkey) {
       const data: ruleType[] = await sendPostAuth(
         ndk,
-        store.user?.pubkey,
+        store.pubkey,
         url,
         "GET",
       );
@@ -99,26 +102,32 @@ const Settings = () => {
     }
   };
   const fetchRelays = async () => {
-    if (store.user?.pubkey) {
-      const data: string[] = await sendPostAuth(
-        ndk,
-        store.user?.pubkey,
-        urlRelays,
-        "GET",
-      );
-      const relays: tagType[] = data?.length
-        ? data.map((relay, index) => {
-            const value = relaysSuggestions.find((r) => relay === r.label)
-              ?.value;
-            return {
-              value: value ?? index,
-              label: relay,
-            };
-          })
-        : [];
-      console.log(relays);
-
-      setRelays(relays);
+    if (store.pubkey) {
+      try {
+        setIsLoading(true);
+        const data: string[] = await sendPostAuth(
+          ndk,
+          store.pubkey,
+          urlRelays,
+          "GET",
+        );
+        const relays: tagType[] = data?.length
+          ? data.map((relay, index) => {
+              const value = relaysSuggestions.find((r) => relay === r.label)
+                ?.value;
+              return {
+                value: value ?? index,
+                label: relay,
+              };
+            })
+          : [];
+        console.log(relays);
+        setRelays(relays);
+      } catch (err) {
+        toast.error(`${err}`, { autoClose: 3000 });
+      } finally {
+        setIsLoading(false);
+      }
     }
     setIsEditRelays(false);
   };
@@ -182,7 +191,7 @@ const Settings = () => {
   useEffect(() => {
     fetchRules();
     fetchRelays();
-  }, [store.user?.pubkey]);
+  }, [store.pubkey]);
 
   useEffect(() => {
     const rule = selectedRule;
@@ -307,15 +316,20 @@ const Settings = () => {
       }
     }
 
-    if (store.user?.pubkey) {
-      const res = await sendPostAuth(
-        ndk,
-        store.user?.pubkey,
-        url,
-        "POST",
-        JSON.stringify(newRule),
-      );
-      console.log(res);
+    if (store.pubkey) {
+      try {
+        const res = await sendPostAuth(
+          ndk,
+          store.pubkey,
+          url,
+          "POST",
+          JSON.stringify(newRule),
+        );
+        toast.success(`Added new rule: ${res.name}!`, { autoClose: 3000 });
+        console.log(res);
+      } catch (err) {
+        toast.error(`${err}!`, { autoClose: 3000 });
+      }
     }
     fetchRules();
     setIsModal(false);
@@ -363,16 +377,21 @@ const Settings = () => {
         });
       }
     }
-    if (store.user?.pubkey) {
-      const res = await sendPostAuth(
-        ndk,
-        store.user?.pubkey,
-        url,
-        "PUT",
-        JSON.stringify(updatedRule),
-        id,
-      );
-      fetchRules();
+    if (store.pubkey) {
+      try {
+        const res = await sendPostAuth(
+          ndk,
+          store.pubkey,
+          url,
+          "PUT",
+          JSON.stringify(updatedRule),
+          id,
+        );
+        toast.success(`Rule ${res.name} updated!`, { autoClose: 3000 });
+        fetchRules();
+      } catch (err) {
+        toast.error(`${err}`, { autoClose: 3000 });
+      }
     }
     setIsModal(false);
   };
@@ -382,15 +401,8 @@ const Settings = () => {
     id: number,
   ) => {
     e.stopPropagation();
-    if (store.user?.pubkey) {
-      const res = await sendPostAuth(
-        ndk,
-        store.user?.pubkey,
-        url,
-        "DELETE",
-        "",
-        id,
-      );
+    if (store.pubkey) {
+      const res = await sendPostAuth(ndk, store.pubkey, url, "DELETE", "", id);
       console.log(res);
       if (res.success) {
         fetchRules();
@@ -400,17 +412,23 @@ const Settings = () => {
 
   const saveRelays = async () => {
     const updatedRelays = relays.map((relay) => relay.label);
-    if (store.user?.pubkey) {
-      const res = await sendPostAuth(
-        ndk,
-        store.user?.pubkey,
-        urlRelays,
-        "PUT",
-        JSON.stringify({ relay_array: updatedRelays }),
-      );
-      console.log(res);
-
-      fetchRelays();
+    if (store.pubkey) {
+      try {
+        const res = await sendPostAuth(
+          ndk,
+          store.pubkey,
+          urlRelays,
+          "PUT",
+          JSON.stringify({ relay_array: updatedRelays }),
+        );
+        console.log(res);
+        toast.success(`Default relays updated successfully!`, {
+          autoClose: 3000,
+        });
+        fetchRelays();
+      } catch (err) {
+        toast.error(`${err}`, { autoClose: 3000 });
+      }
     }
   };
 
@@ -455,49 +473,64 @@ const Settings = () => {
             <PlusCircle />
           </Button>
         </div>
-        {rules.length ? (
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Rule</th>
-                <th>Type</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rules.map((rule, index) => {
-                return (
-                  <tr
-                    key={rule.id}
-                    onClick={() => {
-                      setSelectedRule(rule);
-                      setModalType("editType");
-                      setIsModal(true);
-                    }}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <td>{index + 1}</td>
-                    <td>{rule.name}</td>
-                    <td>{rule.type}</td>
-                    <td align="center" width={"10px"}>
-                      {
-                        <Button
-                          size="sm"
-                          onClick={(e) => removeRule(e, rule.id)}
-                          variant="outline-danger"
-                        >
-                          <Trash />
-                        </Button>
-                      }
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+        {!isLoading ? (
+          rules.length ? (
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Rule</th>
+                  <th>Type</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rules.map((rule, index) => {
+                  return (
+                    <tr
+                      key={rule.id}
+                      onClick={() => {
+                        setSelectedRule(rule);
+                        setModalType("editType");
+                        setIsModal(true);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td>{index + 1}</td>
+                      <td>{rule.name}</td>
+                      <td>{rule.type}</td>
+                      <td align="center" width={"10px"}>
+                        {
+                          <Button
+                            size="sm"
+                            onClick={(e) => removeRule(e, rule.id)}
+                            variant="outline-danger"
+                          >
+                            <Trash />
+                          </Button>
+                        }
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </Table>
+          ) : (
+            "No rules found"
+          )
         ) : (
-          "No rules found"
+          <div className={cl.loader}>
+            <ThreeDots
+              visible={true}
+              height="80"
+              width="80"
+              color="gray"
+              radius="9"
+              ariaLabel="three-dots-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+            />
+          </div>
         )}
 
         <ReactModal
@@ -694,6 +727,7 @@ const Settings = () => {
                         <Button
                           variant="success"
                           onClick={(e) => updateRule(e, selectedRule.id)}
+                          disabled={!isFormValidate}
                         >
                           Save
                         </Button>
