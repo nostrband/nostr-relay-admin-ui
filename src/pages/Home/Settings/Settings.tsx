@@ -104,7 +104,7 @@ const Settings = () => {
   const fetchRelays = async () => {
     if (store.pubkey) {
       try {
-        setIsLoading(true);
+        setIsLoading(isLoading);
         const data: string[] = await sendPostAuth(
           ndk,
           store.pubkey,
@@ -393,6 +393,7 @@ const Settings = () => {
         toast.error(`${err}`, { autoClose: 3000 });
       }
     }
+    setIsEditActive(false);
     setIsModal(false);
   };
 
