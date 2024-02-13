@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import PostCard from "../../../components/PostCard/PostCard";
-import { nip19 } from "@nostrband/nostr-tools";
+import { nip19 } from "nostr-tools";
 import { extractNostrStrings } from "../../../utils/formatLink";
-import NDK, { NDKEvent } from "@nostrband/ndk";
+import NDK, { NDKEvent } from "@nostr-dev-kit/ndk";
 import { Button, Spinner } from "react-bootstrap";
 import cl from "./Events.module.css";
-import Search from "../../../components/Search/Search";
 import { useSearchParams } from "react-router-dom";
 import { dateToUnix } from "nostr-react";
 import { useAppSelector } from "../../../hooks/redux";
@@ -115,8 +114,6 @@ const Events = () => {
       await ndk.fetchEvents({ kinds: [0], authors: pubkeys }),
     );
     const allPostsTagged = [...notNpubLinks, ...postsTaggedUsers];
-
-    setTaggedProfiles(allPostsTagged);
   };
   const fetchPosts = async () => {
     try {
@@ -185,9 +182,11 @@ const Events = () => {
           }
           const posts = Array.from(await ndk.fetchEvents(filter));
           const countFilter = { ...filter, limit: 10000 };
-          const postsCount = await ndk.fetchCount(countFilter);
+          const postsCount = await ndk.pool.relays
+            .get("wss://relay.nostr.band")
+            ?.connectivity?.relay?.count([countFilter]);
+          console.log("Posts counts: ", postsCount);
           setPostsCount(postsCount?.count ?? 0);
-
           const postsAuthorsPks = posts.map((post) => post.pubkey);
           const postsAuthors = Array.from(
             await ndk.fetchEvents({
@@ -215,7 +214,9 @@ const Events = () => {
           const posts = Array.from(await ndk.fetchEvents(filter));
           fetchTaggedUsers(posts);
           const countFilter = { ...filter, limit: 10000 };
-          const postsCount = await ndk.fetchCount(countFilter);
+          const postsCount = await ndk.pool.relays
+            .get("wss://relay.nostr.band")
+            ?.connectivity?.relay?.count([countFilter]);
           setPostsCount(postsCount?.count ?? 0);
 
           const postsAuthorsPks = posts.map((post) => post.pubkey);
@@ -238,7 +239,9 @@ const Events = () => {
           setPosts(posts);
           setPostsAuthors(postsAuthors);
           const countFilter = { ...filter, limit: 10000 };
-          const postsCount = await ndk.fetchCount(countFilter);
+          const postsCount = await ndk.pool.relays
+            .get("wss://relay.nostr.band")
+            ?.connectivity?.relay?.count([countFilter]);
           setPostsCount(postsCount?.count ?? 0);
         }
 
@@ -261,7 +264,6 @@ const Events = () => {
 
   return (
     <>
-      <Search isLoading={false} />
       <div className={cl.eventsHeader}>
         <h4>Events</h4>
         <Button variant="outline-danger">Delete all</Button>
@@ -274,10 +276,8 @@ const Events = () => {
             const authorContent = postAuthor
               ? JSON.parse(postAuthor?.content)
               : {};
-
             return (
               <PostCard
-                taggedProfiles={taggedProfiles}
                 key={post.id}
                 name={
                   authorContent.display_name

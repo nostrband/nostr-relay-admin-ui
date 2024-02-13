@@ -1,4 +1,4 @@
-import NDK from "@nostrband/ndk";
+import NDK from "@nostr-dev-kit/ndk";
 import { createSlice } from "@reduxjs/toolkit";
 type connectionType = {
   ndk: NDK;

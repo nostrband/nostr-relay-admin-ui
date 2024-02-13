@@ -1,4 +1,4 @@
-import { NDKTag } from "@nostrband/ndk";
+import { NDKTag } from "@nostr-dev-kit/ndk";
 
 export type tagType = NDKTag[];
 export type ndkEventType = {
@@ -167,4 +167,11 @@ export type ruleType = {
   name: string;
   type: string;
   filter: Filter;
+};
+
+export type getRuleType = {
+  id: number;
+  name: string;
+  type: string;
+  filter: string;
 };

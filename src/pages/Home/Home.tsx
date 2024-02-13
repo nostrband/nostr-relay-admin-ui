@@ -1,4 +1,3 @@
-import NDK from "@nostrband/ndk";
 import Events from "./Events/Events";
 import "./Home.css";
 import { Button } from "react-bootstrap";
