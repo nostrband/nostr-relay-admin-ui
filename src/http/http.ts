@@ -1,10 +1,10 @@
-import NDK, { NDKEvent, NDKNip07Signer } from "@nostrband/ndk";
+import NDK, { NDKEvent, NDKNip07Signer } from "@nostr-dev-kit/ndk";
 import axios from "axios";
 import { sha256 } from "js-sha256";
 
 const signer = new NDKNip07Signer();
 
-export const sendPostAuth = async (
+export const sendPostAuth = async <T>(
   ndk: NDK,
   pubkey: string,
   url: string,
@@ -30,7 +30,7 @@ export const sendPostAuth = async (
   const encodedString = btoa(JSON.stringify(authEvent.rawEvent()));
 
   if (method === "GET") {
-    const { data } = await axios.get(url, {
+    const { data } = await axios.get<T>(url, {
       headers: {
         Authorization: `Nostr ${encodedString}`,
       },

@@ -1,10 +1,10 @@
-import NDK from "@nostrband/ndk";
 import Events from "./Events/Events";
 import "./Home.css";
 import { Button } from "react-bootstrap";
 import { useSearchParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Settings from "./Settings/Settings";
+import Review from "./Review/Review";
 
 const Home = () => {
   const [searchParams] = useSearchParams();
@@ -45,6 +45,8 @@ const Home = () => {
           <Events />
         ) : panel === "settings" ? (
           <Settings />
+        ) : panel === "review" ? (
+          <Review />
         ) : (
           ""
         )}

@@ -9,7 +9,7 @@ import UserIcon from "../../assets/user.png";
 import { Link } from "react-router-dom";
 import { nip19 } from "nostr-tools";
 import { copyUrl } from "../../utils/copyFunctions";
-import { NDKEvent } from "@nostrband/ndk";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 import Gallery from "../Gallery/Gallery";
 import { formatContent, formatNostrContent } from "../../utils/formatContent";
 

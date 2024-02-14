@@ -104,7 +104,7 @@ const Settings = () => {
   const fetchRelays = async () => {
     if (store.pubkey) {
       try {
-        setIsLoading(true);
+        setIsLoading(isLoading);
         const data: string[] = await sendPostAuth(
           ndk,
           store.pubkey,
@@ -121,7 +121,6 @@ const Settings = () => {
               };
             })
           : [];
-        console.log(relays);
         setRelays(relays);
       } catch (err) {
         toast.error(`${err}`, { autoClose: 3000 });
@@ -196,11 +195,14 @@ const Settings = () => {
   useEffect(() => {
     const rule = selectedRule;
     let ruleFilter: Filter = {};
+    let ruleRelays: string[] = [];
     if (typeof selectedRule?.filter === "string") {
       ruleFilter = JSON.parse(selectedRule?.filter);
     }
-    const { authors, kinds, relays, ids, since, until, ...ruleLetters } =
-      ruleFilter;
+    if (typeof selectedRule?.relays === "string") {
+      ruleRelays = JSON.parse(selectedRule?.relays);
+    }
+    const { authors, kinds, ids, since, until, ...ruleLetters } = ruleFilter;
     const newTableData: TableData[] = [];
     for (const key in ruleLetters) {
       newTableData.push({
@@ -216,7 +218,7 @@ const Settings = () => {
       }) ?? [],
     );
     setSelectedRelays(
-      ruleFilter.relays?.map((k, i) => {
+      ruleRelays.map((k, i) => {
         return { value: i, label: k };
       }) ?? [],
     );
@@ -284,11 +286,13 @@ const Settings = () => {
     const newRule = new Rule();
     newRule.setName(ruleName);
     newRule.setType(selectTypeValue?.value ?? "");
-    newRule.filter = {
-      kinds: kinds.map((k) => k.label),
-      relays: selectedRelays.length
+    newRule.setRelays(
+      selectedRelays.length
         ? selectedRelays.map((r) => r.label)
         : relays.map((r) => r.label),
+    );
+    newRule.filter = {
+      kinds: kinds.map((k) => k.label),
       authors: [authors],
       ids: [ids],
     };
@@ -346,11 +350,11 @@ const Settings = () => {
       id: id,
       name: ruleName,
       type: selectTypeValue?.value ?? "import",
+      relays: selectedRelays.length
+        ? selectedRelays.map((r) => r.label)
+        : relays.map((r) => r.label),
       filter: {
         kinds: kinds.map((k) => k.label),
-        relays: selectedRelays.length
-          ? selectedRelays.map((r) => r.label)
-          : relays.map((r) => r.label),
         authors: [authors],
         ids: [ids],
       },
@@ -393,6 +397,7 @@ const Settings = () => {
         toast.error(`${err}`, { autoClose: 3000 });
       }
     }
+    setIsEditActive(false);
     setIsModal(false);
   };
 

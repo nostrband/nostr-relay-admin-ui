@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { profileType } from "../../types/types";
-import { NDKEvent } from "@nostrband/ndk";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 
 interface IUserState {
   isAuth: boolean;

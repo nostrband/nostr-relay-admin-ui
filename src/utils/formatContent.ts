@@ -1,4 +1,4 @@
-import { NDKEvent } from "@nostrband/ndk";
+import { NDKEvent } from "@nostr-dev-kit/ndk";
 import { contentType } from "../types/types";
 import {
   collectLinksFromStr,
@@ -6,7 +6,7 @@ import {
   extractNostrStrings,
   replaceNostrLinks,
 } from "./formatLink";
-import { nip19 } from "@nostrband/nostr-tools";
+import { nip19 } from "nostr-tools";
 
 export const formatContent = (about: string) => {
   let contents: contentType[] = [];

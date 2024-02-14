@@ -12,3 +12,5 @@ declare module "base-64";
 declare module "crypto";
 declare module "crypto-js/sha256";
 declare module "react-loader-spinner";
+declare module "nostr-tools";
+declare module "@nostrband/ndk";
