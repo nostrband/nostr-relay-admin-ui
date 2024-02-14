@@ -3,6 +3,7 @@ import { Filter, ruleType } from "../types/types";
 export default class Rule implements ruleType {
   id!: number;
   type!: string;
+  relays!: string[];
   filter!: {
     [key: string]: string[] | number | undefined;
     relays?: string[] | undefined;
@@ -24,6 +25,9 @@ export default class Rule implements ruleType {
   }
   setType(value: string) {
     this.type = value;
+  }
+  setRelays(value: string[]) {
+    this.relays = value;
   }
   setFilter(filter: Filter) {
     this.filter = filter;

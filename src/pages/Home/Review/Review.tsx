@@ -70,7 +70,7 @@ const Review = () => {
       if (Object.keys(relayFilter).length) {
         for (const relay in relayFilter) {
           for (let i = 0; i < reviewRules.length; i++) {
-            if (reviewRules[i].filter.relays?.includes(relay)) {
+            if (reviewRules[i]?.relays?.includes(relay)) {
               relayFilter[relay] = [
                 ...relayFilter[relay],
                 reviewRules[i].filter,
