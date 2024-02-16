@@ -15,11 +15,11 @@ export const kindsSuggestions = [
 export const relaysSuggestions = [
   {
     value: 100,
-    label: "relay.damus.io",
+    label: "wss://relay.damus.io",
   },
   {
     value: 101,
-    label: "relay.nostr.ai",
+    label: "wss://relay.nostr.ai",
   },
   {
     value: 102,

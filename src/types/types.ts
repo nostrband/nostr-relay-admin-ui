@@ -1,4 +1,4 @@
-import { NDKTag } from "@nostr-dev-kit/ndk";
+import { NDKFilter, NDKTag } from "@nostr-dev-kit/ndk";
 
 export type tagType = NDKTag[];
 export type ndkEventType = {
@@ -152,21 +152,21 @@ export type ndkFilter = {
   until?: number;
 };
 
-export type Filter = {
-  kinds?: string[];
-  ids?: string[];
-  authors?: string[];
-  since?: number;
-  until?: number;
-  [key: string]: string[] | number | undefined;
-};
+// export type Filter = {
+//   kinds?: number[] | null;
+//   ids?: string[];
+//   authors?: string[];
+//   since?: number;
+//   until?: number;
+//   [key: string]: string[] | number | undefined;
+// };
 
 export type ruleType = {
   id: number;
   name: string;
   type: string;
   relays: string[];
-  filter: Filter;
+  filter: NDKFilter;
 };
 
 export type getRuleType = {

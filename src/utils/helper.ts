@@ -76,9 +76,9 @@ export const getKindNumber = (str: string) => {
 export const getKindName = (number: number) => {
   switch (number) {
     case 0:
-      return "Metadata";
+      return "Profiles";
     case 1:
-      return "Short Text Note";
+      return "Posts";
     case 2:
       return "Recommend Relay";
     case 3:
@@ -128,7 +128,7 @@ export const getKindName = (number: number) => {
     case 9041:
       return "Zap Goal";
     case 9735:
-      return "Zap";
+      return "Zaps";
     case 9802:
       return "Highlight";
     case 10000:

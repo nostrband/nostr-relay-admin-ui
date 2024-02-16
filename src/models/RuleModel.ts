@@ -1,16 +1,11 @@
-import { Filter, ruleType } from "../types/types";
+import { NDKFilter } from "@nostr-dev-kit/ndk";
+import { ruleType } from "../types/types";
 
 export default class Rule implements ruleType {
   id!: number;
   type!: string;
   relays!: string[];
-  filter!: {
-    [key: string]: string[] | number | undefined;
-    relays?: string[] | undefined;
-    kinds?: string[] | undefined;
-    ids?: string[] | undefined;
-    authors?: string[] | undefined;
-  };
+  filter!: NDKFilter;
   name!: string;
 
   constructor() {
@@ -29,7 +24,7 @@ export default class Rule implements ruleType {
   setRelays(value: string[]) {
     this.relays = value;
   }
-  setFilter(filter: Filter) {
+  setFilter(filter: NDKFilter) {
     this.filter = filter;
   }
 }
