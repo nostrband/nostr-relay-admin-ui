@@ -1,0 +1,111 @@
+.zap {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  margin-bottom: 2rem;
+  padding: 0.9rem;
+  box-shadow: var(--body-boxshadow);
+  border-radius: 16px;
+}
+.zap p {
+  color: var(--body-color);
+  margin-bottom: 0.2rem;
+}
+.zapSenderImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin-right: 10px;
+  border: 2px solid rgba(200, 200, 200, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.zapsSenderName {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.zapSender {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+.zapSenderImage img {
+  border-radius: 50%;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+.zapSenderAbout {
+  display: flex;
+  align-items: center;
+  width: 40%;
+}
+.rightSender {
+  justify-content: flex-end;
+}
+.zapSenderAbout p {
+  font-size: 1.2rem;
+  color: var(--bg-secondary-color);
+}
+.zapsAmount {
+  color: var(--body-color);
+  display: flex;
+  align-items: center;
+  text-align: center;
+  font-weight: 500;
+}
+.zapsAmount span {
+  margin: 0 0.5rem;
+}
+.createdTime {
+  display: flex;
+  float: right;
+  justify-content: flex-end;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--bg-secondary-color);
+  text-align: right;
+  margin: 0;
+}
+.details {
+  font-size: 2rem;
+  color: var(--bg-secondary-color);
+}
+.createdTime a {
+  color: var(--bg-secondary-color);
+  opacity: 0.8;
+  text-decoration: none;
+  transition: 0.4s;
+}
+.createdTime a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+.zapSenderAbout a {
+  text-decoration: none;
+  color: var(--bg-secondary-color);
+}
+.zapSenderAbout a:hover {
+  text-decoration: underline;
+}
+.unknownUser {
+  color: var(--body-mute-color);
+}
+
+@media screen and (max-width: 500px) {
+  .zapSenderAbout {
+    flex-direction: column;
+    text-align: center;
+  }
+  .zapSenderAbout p {
+    text-align: center;
+  }
+  .zapSenderImage {
+    margin: 0;
+  }
+}
