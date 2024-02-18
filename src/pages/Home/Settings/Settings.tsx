@@ -381,11 +381,14 @@ const Settings = () => {
       });
     }
     if (authors.length) {
+      console.log(authors);
+
       Object.defineProperty(filter, "authors", {
-        value: [authors],
+        value: authors,
         enumerable: true,
       });
     }
+
     if (startDate) {
       Object.defineProperty(filter, "since", {
         value: dateToUnix(startDate),
@@ -407,7 +410,7 @@ const Settings = () => {
         });
       }
     }
-    filter.limit = 100;
+    filter.limit = 30;
     const updatedRule: ruleType = {
       id: id,
       name: ruleName,
@@ -417,7 +420,6 @@ const Settings = () => {
         : relays.map((r) => r.label),
       filter: filter,
     };
-    console.log(updatedRule);
 
     if (store.pubkey) {
       try {
@@ -653,7 +655,9 @@ const Settings = () => {
                     disabled={!isEditActive}
                     placeholder="Authors"
                     value={authors}
-                    onChange={(e) => setAuthors([e.target.value])}
+                    onChange={(e) =>
+                      setAuthors(e.target.value.length ? [e.target.value] : [])
+                    }
                   />
                   <Form.Label>Example: npub1xxx</Form.Label>
                 </Form.Group>

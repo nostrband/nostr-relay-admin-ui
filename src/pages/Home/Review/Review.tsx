@@ -21,6 +21,7 @@ const Review = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [reviewRules, setReviewRules] = useState<ruleType[]>([]);
   const [events, setEvents] = useState<NDKEvent[]>([]);
+  const [preEvents, setPreEvents] = useState<NDKEvent[]>([]);
 
   const fetchDefaultRelays = async () => {
     try {
@@ -81,21 +82,28 @@ const Review = () => {
     }
   }, [store.pubkey]);
 
+  function removeDuplicates(array: NDKEvent[]) {
+    return array.filter(
+      (item, index, self) =>
+        index === self.findIndex((obj) => obj["id"] === item["id"]),
+    );
+  }
+
   const fetchEvents = async (pair: IPair) => {
     try {
       const relays = pair.relay;
       //@ts-ignore
       ndk.explicitRelayUrls = [relays];
       const events = Array.from(await ndk.fetchEvents(pair.filters));
-      setEvents((prevState) => [...prevState, ...events]);
-      console.log(pair);
+      setEvents((prevState) => removeDuplicates([...prevState, ...events]));
 
+      ndk.explicitRelayUrls = ["wss://relay.nostr.band"];
       const postsAuthorsPks = events.map((post) => post.pubkey);
       const postsAuthors = Array.from(
         await ndk.fetchEvents({
           kinds: [0],
           authors: postsAuthorsPks,
-          limit: 100,
+          limit: events.length,
         }),
       );
       setPostsAuthors((prevState) => [...prevState, ...postsAuthors]);
@@ -138,7 +146,7 @@ const Review = () => {
       <div className={cl.reviewHeader}>
         <h4>Review</h4>
       </div>
-      {events?.length
+      {events?.length && postsAuthors?.length
         ? events.map((post) => {
             const postAuthor = postsAuthors.find(
               (author) => author.pubkey === post.pubkey,
