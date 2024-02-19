@@ -302,6 +302,7 @@ const Review = () => {
 
           return (
             <PostCard
+              type="review"
               key={post.id}
               name={
                 authorContent.display_name
@@ -332,6 +333,7 @@ const Review = () => {
 
           return (
             <PostCard
+              type="review"
               kindName={getKindName(post.kind ?? 0)}
               key={post.id}
               name={

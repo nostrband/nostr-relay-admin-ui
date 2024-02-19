@@ -103,11 +103,12 @@ const ZapTransfer: FC<zapTypes> = ({
           </span>
           <ArrowRightCircleFill color="orange" width="1.8rem" height="100%" />
         </div>
-        <div className={`${cl.zapSenderAbout} ${cl.rightSender}`}>
+        <div className={`${cl.zapSenderAboutRight}`}>
           <div className={cl.zapSenderImage}>
             {receiver ? (
               receiver.image ? (
                 <img
+                  width={100}
                   src={receiver.image}
                   alt="avatar"
                   onError={({ currentTarget }) =>
@@ -116,6 +117,7 @@ const ZapTransfer: FC<zapTypes> = ({
                 />
               ) : receiver.picture ? (
                 <img
+                  width={100}
                   src={receiver.picture}
                   alt="avatar"
                   onError={({ currentTarget }) =>

@@ -278,6 +278,7 @@ const Events = () => {
               : {};
             return (
               <PostCard
+                type="events"
                 key={post.id}
                 name={
                   authorContent.display_name
