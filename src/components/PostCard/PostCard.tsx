@@ -1,7 +1,13 @@
 import { useEffect, useState, FC } from "react";
 import cl from "./PostCard.module.css";
 import Dropdown from "react-bootstrap/Dropdown";
-import { ImageFill, PlayBtnFill, TrashFill } from "react-bootstrap-icons";
+import {
+  Check,
+  ImageFill,
+  PlayBtnFill,
+  TrashFill,
+  X,
+} from "react-bootstrap-icons";
 import { Button } from "react-bootstrap";
 import { formatAMPM } from "../../utils/formatDate";
 import MarkdownComponent from "../MarkdownComponent/MarkdownComponent";
@@ -24,6 +30,10 @@ type postItemType = {
   taggedProfiles?: (NDKEvent | string)[];
   title?: string;
   kindName?: string;
+  type?: string;
+  isApproved?: boolean;
+  onRemoveTask: () => void;
+  onApproveTask: () => void;
 };
 
 const PostItem: FC<postItemType> = ({
@@ -37,6 +47,10 @@ const PostItem: FC<postItemType> = ({
   taggedProfiles,
   title,
   kindName,
+  type,
+  isApproved,
+  onRemoveTask,
+  onApproveTask,
 }) => {
   const [imgError, setImgError] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
@@ -124,9 +138,30 @@ const PostItem: FC<postItemType> = ({
             </Dropdown.Menu>
           </Dropdown>
         </div>
-        <div className={cl.deleteButton}>
-          <Button variant="outline-danger">{<TrashFill />}</Button>
-        </div>
+        {type === "events" ? (
+          <div className={cl.deleteButton}>
+            <Button variant="outline-danger" size="sm">
+              {<TrashFill />}
+            </Button>
+          </div>
+        ) : type === "review" ? (
+          <>
+            <div className={cl.reviewButtons}>
+              <Button
+                variant={`outline-${isApproved ? "success" : "secondary"}`}
+                size="sm"
+                onClick={onApproveTask}
+              >
+                {isApproved ? "Approved" : "Approve"}
+              </Button>
+              <Button variant="outline-danger" size="sm" onClick={onRemoveTask}>
+                Remove
+              </Button>
+            </div>
+          </>
+        ) : (
+          ""
+        )}
       </div>
       {title && (
         <div>

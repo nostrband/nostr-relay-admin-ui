@@ -30,11 +30,19 @@ export const sendPostAuth = async <T>(
   const encodedString = btoa(JSON.stringify(authEvent.rawEvent()));
 
   if (method === "GET") {
-    const { data } = await axios.get<T>(url, {
+    const configs = {
       headers: {
         Authorization: `Nostr ${encodedString}`,
       },
-    });
+    };
+    if (body) {
+      Object.defineProperty(configs, "params", {
+        value: JSON.parse(body),
+        enumerable: true,
+      });
+    }
+
+    const { data } = await axios.get<T>(url, configs);
     return data;
   }
   if (method === "DELETE") {
@@ -49,15 +57,11 @@ export const sendPostAuth = async <T>(
     return data;
   }
   if (method === "POST" && body) {
-    const { data } = await axios.post(
-      `${process.env.REACT_APP_API_URL_RULES}/rules`,
-      JSON.parse(body),
-      {
-        headers: {
-          Authorization: `Nostr ${encodedString}`,
-        },
+    const { data } = await axios.post(`${url}`, JSON.parse(body), {
+      headers: {
+        Authorization: `Nostr ${encodedString}`,
       },
-    );
+    });
     return data;
   }
   if (method === "PUT" && body) {

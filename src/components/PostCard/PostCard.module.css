@@ -160,6 +160,9 @@
   display: flex;
   justify-content: space-between;
 }
+.reviewButtons button {
+  margin-left: 0.3rem;
+}
 @media screen and (max-width: 400px) {
   .bannerMovie {
     width: 100%;

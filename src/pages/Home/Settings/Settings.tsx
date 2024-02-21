@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import TagInput from "../../../components/TagInput/TagInput";
 import cl from "./Settings.module.css";
-import { Filter, ruleType } from "../../../types/types";
+import { ruleType } from "../../../types/types";
 import { Button, Form, Table } from "react-bootstrap";
 import {
   Check2Square,
@@ -27,6 +27,8 @@ import { useAppSelector } from "../../../hooks/redux";
 import { dateToUnix } from "nostr-react";
 import { toast } from "react-toastify";
 import { ThreeDots } from "react-loader-spinner";
+import { getKindName, getKindNumber } from "../../../utils/helper";
+import { NDKFilter } from "@nostr-dev-kit/ndk";
 
 type tagType = {
   value: number;
@@ -50,7 +52,7 @@ const Settings = () => {
   const [kinds, setKinds] = useState<tagType[]>([]);
   const [types, setTypes] = useState<tagType[]>([]);
   const [selectedRelays, setSelectedRelays] = useState<tagType[]>([]);
-  const [authors, setAuthors] = useState<string>("");
+  const [authors, setAuthors] = useState<string[]>([]);
   const [ids, setIds] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [untilDate, setUntilDate] = useState<Date | null>(null);
@@ -194,7 +196,7 @@ const Settings = () => {
 
   useEffect(() => {
     const rule = selectedRule;
-    let ruleFilter: Filter = {};
+    let ruleFilter: NDKFilter = {};
     let ruleRelays: string[] = [];
     if (typeof selectedRule?.filter === "string") {
       ruleFilter = JSON.parse(selectedRule?.filter);
@@ -202,11 +204,13 @@ const Settings = () => {
     if (typeof selectedRule?.relays === "string") {
       ruleRelays = JSON.parse(selectedRule?.relays);
     }
-    const { authors, kinds, ids, since, until, ...ruleLetters } = ruleFilter;
+    const { authors, kinds, ids, since, until, limit, ...ruleLetters } =
+      ruleFilter;
     const newTableData: TableData[] = [];
     for (const key in ruleLetters) {
       newTableData.push({
         letter: key.split("#")[1],
+        //@ts-ignore
         value: `${ruleLetters[key]}`,
       });
     }
@@ -214,7 +218,7 @@ const Settings = () => {
     setSelectedRule(rule);
     setKinds(
       ruleFilter.kinds?.map((k, i) => {
-        return { value: i, label: k };
+        return { value: i, label: getKindName(k) };
       }) ?? [],
     );
     setSelectedRelays(
@@ -240,18 +244,19 @@ const Settings = () => {
       setSelectedLetters(updatedSelectedLetters);
 
       Object.keys(ruleFilter).forEach((key) => {
+        //@ts-ignore
         const value = (ruleFilter[key] as string[] | undefined)?.[0] || "";
         setLetterValues((prevValues) => ({ ...prevValues, [key]: value }));
       });
     }
-    setAuthors(ruleFilter.authors?.toString() ?? "");
+    setAuthors(ruleFilter.authors ?? []);
     setIds(ruleFilter.ids?.toString() ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRule]);
 
   useEffect(() => {
     const currentRule = selectedRule;
-    let ruleFilter: Filter = {};
+    let ruleFilter: NDKFilter = {};
     if (typeof selectedRule?.filter === "string") {
       ruleFilter = JSON.parse(selectedRule?.filter);
     }
@@ -259,6 +264,7 @@ const Settings = () => {
     if (currentRule) {
       const updatedLetterValues: { [key: string]: string } = {};
       Object.keys(ruleFilter).forEach((key) => {
+        //@ts-ignore
         const value = (ruleFilter[key] as string[] | undefined)?.[0] || "";
         updatedLetterValues[key] = value;
       });
@@ -284,28 +290,34 @@ const Settings = () => {
 
   const addRule = async () => {
     const newRule = new Rule();
-    newRule.setName(ruleName);
-    newRule.setType(selectTypeValue?.value ?? "");
-    newRule.setRelays(
-      selectedRelays.length
-        ? selectedRelays.map((r) => r.label)
-        : relays.map((r) => r.label),
-    );
-    newRule.filter = {
-      kinds: kinds.map((k) => k.label),
-      authors: [authors],
-      ids: [ids],
-    };
-
+    const filter: NDKFilter = {};
+    filter.limit = 100;
+    if (kinds.length) {
+      Object.defineProperty(filter, "kinds", {
+        value: kinds.map((k) => getKindNumber(k.label)),
+        enumerable: true,
+      });
+    }
+    if (ids.length) {
+      Object.defineProperty(filter, "ids", {
+        value: ids,
+        enumerable: true,
+      });
+    }
+    if (authors.length) {
+      Object.defineProperty(filter, "authors", {
+        value: authors,
+        enumerable: true,
+      });
+    }
     if (startDate) {
-      Object.defineProperty(newRule.filter, "since", {
+      Object.defineProperty(filter, "since", {
         value: dateToUnix(startDate),
         enumerable: true,
       });
     }
-
     if (untilDate) {
-      Object.defineProperty(newRule.filter, "until", {
+      Object.defineProperty(filter, "until", {
         value: dateToUnix(untilDate),
         enumerable: true,
       });
@@ -313,12 +325,21 @@ const Settings = () => {
 
     for (let i = 0; i < tableData.length; i++) {
       if (tableData[i].letter) {
-        Object.defineProperty(newRule.filter, `#${tableData[i].letter}`, {
+        Object.defineProperty(filter, `#${tableData[i].letter}`, {
           value: [tableData[i].value],
           enumerable: true,
         });
       }
     }
+
+    newRule.setName(ruleName);
+    newRule.setType(selectTypeValue?.value ?? "");
+    newRule.setRelays(
+      selectedRelays.length
+        ? selectedRelays.map((r) => r.label)
+        : relays.map((r) => r.label),
+    );
+    newRule.filter = filter;
 
     if (store.pubkey) {
       try {
@@ -346,6 +367,50 @@ const Settings = () => {
     id: number,
   ) => {
     e.stopPropagation();
+    const filter: NDKFilter = {};
+    if (kinds.length) {
+      Object.defineProperty(filter, "kinds", {
+        value: kinds.map((k) => getKindNumber(k.label)),
+        enumerable: true,
+      });
+    }
+    if (ids.length) {
+      Object.defineProperty(filter, "ids", {
+        value: ids,
+        enumerable: true,
+      });
+    }
+    if (authors.length) {
+      console.log(authors);
+
+      Object.defineProperty(filter, "authors", {
+        value: authors,
+        enumerable: true,
+      });
+    }
+
+    if (startDate) {
+      Object.defineProperty(filter, "since", {
+        value: dateToUnix(startDate),
+        enumerable: true,
+      });
+    }
+
+    if (untilDate) {
+      Object.defineProperty(filter, "until", {
+        value: dateToUnix(untilDate),
+        enumerable: true,
+      });
+    }
+    for (let i = 0; i < tableData.length; i++) {
+      if (tableData[i].letter) {
+        Object.defineProperty(filter, `#${tableData[i].letter}`, {
+          value: [tableData[i].value],
+          enumerable: true,
+        });
+      }
+    }
+    filter.limit = 30;
     const updatedRule: ruleType = {
       id: id,
       name: ruleName,
@@ -353,34 +418,9 @@ const Settings = () => {
       relays: selectedRelays.length
         ? selectedRelays.map((r) => r.label)
         : relays.map((r) => r.label),
-      filter: {
-        kinds: kinds.map((k) => k.label),
-        authors: [authors],
-        ids: [ids],
-      },
+      filter: filter,
     };
 
-    if (startDate) {
-      Object.defineProperty(updatedRule.filter, "since", {
-        value: dateToUnix(startDate),
-        enumerable: true,
-      });
-    }
-
-    if (untilDate) {
-      Object.defineProperty(updatedRule.filter, "until", {
-        value: dateToUnix(untilDate),
-        enumerable: true,
-      });
-    }
-    for (let i = 0; i < tableData.length; i++) {
-      if (tableData[i].letter) {
-        Object.defineProperty(updatedRule.filter, `#${tableData[i].letter}`, {
-          value: [tableData[i].value],
-          enumerable: true,
-        });
-      }
-    }
     if (store.pubkey) {
       try {
         const res = await sendPostAuth(
@@ -615,7 +655,9 @@ const Settings = () => {
                     disabled={!isEditActive}
                     placeholder="Authors"
                     value={authors}
-                    onChange={(e) => setAuthors(e.target.value)}
+                    onChange={(e) =>
+                      setAuthors(e.target.value.length ? [e.target.value] : [])
+                    }
                   />
                   <Form.Label>Example: npub1xxx</Form.Label>
                 </Form.Group>
