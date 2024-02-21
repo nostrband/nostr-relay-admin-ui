@@ -1,8 +1,8 @@
-import { Button, Spinner } from "react-bootstrap";
+import { Spinner } from "react-bootstrap";
 import cl from "./Review.module.css";
 import Search from "../../../components/Search/Search";
 import { useEffect, useState } from "react";
-import { getRuleType, ruleType } from "../../../types/types";
+import { getRuleType, ruleType, taskStatus } from "../../../types/types";
 import { sendPostAuth } from "../../../http/http";
 import { useAppSelector } from "../../../hooks/redux";
 import { NDKEvent, NDKFilter } from "@nostr-dev-kit/ndk";
@@ -33,6 +33,8 @@ const Review = () => {
   const [zappedPosts, setZappedPosts] = useState<NDKEvent[]>([]);
   const [providers, setProviders] = useState<NDKEvent[]>([]);
   const [receiverAuthors, setReceiverAuthors] = useState<NDKEvent[]>([]);
+  const [approvedTasks, setApprovedTasks] = useState<string[]>([]);
+  const url = `${process.env.REACT_APP_API_URL_RULES}/tasks`;
 
   const fetchDefaultRelays = async () => {
     try {
@@ -62,6 +64,21 @@ const Review = () => {
       setReviewRules(reviewRules);
     } catch (err) {
       console.log(err);
+    }
+  };
+
+  const fetchEventsStatus = async (eventIds: string[]) => {
+    try {
+      const res = await sendPostAuth(
+        ndk,
+        store.pubkey,
+        url,
+        "GET",
+        JSON.stringify(eventIds),
+      );
+      return res;
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -106,8 +123,22 @@ const Review = () => {
       //@ts-ignore
       ndk.explicitRelayUrls = [relays];
       const events = Array.from(await ndk.fetchEvents(pair.filters));
-      setEvents((prevState) => removeDuplicates([...prevState, ...events]));
-
+      const tasksStatus: taskStatus[] = await fetchEventsStatus(
+        events.map((event) => event.id),
+      );
+      const removedTasks = tasksStatus
+        .filter((task) => task.status === "removed")
+        .map((task) => task.eventId);
+      const approvedTasks = tasksStatus
+        .filter((task) => task.status === "approved")
+        .map((task) => task.eventId);
+      const filteredEvents = events.filter(
+        (event) => !removedTasks.includes(event.id),
+      );
+      setApprovedTasks(approvedTasks);
+      setEvents((prevState) =>
+        removeDuplicates([...prevState, ...filteredEvents]),
+      );
       ndk.explicitRelayUrls = ["wss://relay.nostr.band"];
       const postsAuthorsPks = events.map((post) => post.pubkey);
       const postsAuthors = Array.from(
@@ -239,6 +270,43 @@ const Review = () => {
     }
   }, [reviewRules]);
 
+  const onApproveTask = async (id: string) => {
+    try {
+      const body = { eventId: id, status: "approved" };
+      const res = await sendPostAuth(
+        ndk,
+        store.pubkey,
+        url,
+        "POST",
+        JSON.stringify(body),
+      );
+      if (res?.id) {
+        setApprovedTasks([...approvedTasks, id]);
+      }
+      console.log(res);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const onRemoveTask = async (id: string) => {
+    try {
+      const body = { eventId: id, status: "removed" };
+      const res = await sendPostAuth(
+        ndk,
+        store.pubkey,
+        url,
+        "POST",
+        JSON.stringify(body),
+      );
+      const updatedEvents = events.filter((event) => event.id !== id);
+      setEvents(updatedEvents);
+      console.log(res);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   let indexOfZaps = -1;
 
   return (
@@ -299,9 +367,13 @@ const Review = () => {
           const authorContent = postAuthor
             ? JSON.parse(postAuthor.content)
             : {};
+          const isApprove = approvedTasks.includes(post.id);
 
           return (
             <PostCard
+              isApproved={isApprove}
+              onApproveTask={() => onApproveTask(post.id)}
+              onRemoveTask={() => onRemoveTask(post.id)}
               type="review"
               key={post.id}
               name={
@@ -330,9 +402,13 @@ const Review = () => {
             "description",
             "alt",
           ]).slice(0, 300);
+          const isApprove = approvedTasks.includes(post.id);
 
           return (
             <PostCard
+              isApproved={isApprove}
+              onApproveTask={() => onApproveTask(post.id)}
+              onRemoveTask={() => onRemoveTask(post.id)}
               type="review"
               kindName={getKindName(post.kind ?? 0)}
               key={post.id}

@@ -152,6 +152,12 @@ export type ndkFilter = {
   until?: number;
 };
 
+export type taskStatus = {
+  id: number;
+  eventId: string;
+  status: string;
+};
+
 // export type Filter = {
 //   kinds?: number[] | null;
 //   ids?: string[];

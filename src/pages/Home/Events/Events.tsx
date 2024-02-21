@@ -262,6 +262,8 @@ const Events = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ndk, searchParams.get("q")]);
 
+  const onRemoveTask = async (id: string) => {};
+
   return (
     <>
       <div className={cl.eventsHeader}>
@@ -278,6 +280,8 @@ const Events = () => {
               : {};
             return (
               <PostCard
+                onApproveTask={() => {}}
+                onRemoveTask={() => onRemoveTask(post.id)}
                 type="events"
                 key={post.id}
                 name={
