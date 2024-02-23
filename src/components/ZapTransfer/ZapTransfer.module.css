@@ -2,10 +2,6 @@
   display: flex;
   flex-direction: column;
   max-width: 100%;
-  margin-bottom: 2rem;
-  padding: 0.9rem;
-  box-shadow: var(--body-boxshadow);
-  border-radius: 16px;
 }
 .zap p {
   color: var(--body-color);

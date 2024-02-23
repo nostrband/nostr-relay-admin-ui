@@ -11,6 +11,8 @@ import ZapTransfer from "../../../components/ZapTransfer/ZapTransfer";
 import { getKindName } from "../../../utils/helper";
 import { getZapAmount } from "../../../utils/zapFunctions";
 import { getTag } from "../../../utils/getTags";
+import ProfileItem from "../../../components/ProfileItem/ProfileItem";
+import EventWrapper from "../../../components/EventWrapper/EventWrapper";
 
 interface IPair {
   relay: string;
@@ -316,6 +318,32 @@ const Review = () => {
         <h4>Review</h4>
       </div>
       {events.map((post) => {
+        if (post.kind === 0) {
+          const profileContent = JSON.parse(post.content);
+          const isApproved = approvedTasks.includes(post.id);
+
+          return (
+            <EventWrapper
+              isApproved={isApproved}
+              onApproveTask={() => onApproveTask(post.id)}
+              onRemoveTask={() => onRemoveTask(post.id)}
+              type="review"
+            >
+              <ProfileItem
+                img={profileContent.picture}
+                pubKey={post.pubkey}
+                bio={profileContent.about}
+                name={
+                  profileContent.display_name
+                    ? profileContent.display_name
+                    : profileContent.name
+                }
+                key={post.id}
+                mail={profileContent.nip05}
+              />
+            </EventWrapper>
+          );
+        }
         if (post.kind === 9735) {
           indexOfZaps++;
           const cleanJSON = post.tags
@@ -344,21 +372,29 @@ const Review = () => {
           const receiver = receiverAuthors.find((item) => item.pubkey === pkey);
 
           const receiverContent = receiver ? JSON.parse(receiver.content) : "";
+          const isApproved = approvedTasks.includes(post.id);
 
           return (
-            <ZapTransfer
+            <EventWrapper
               key={indexOfZaps}
-              created={createdTimes[indexOfZaps]}
-              sender={senderContent}
-              amount={amountReceivedZaps[indexOfZaps]}
-              receiver={receiverContent}
-              comment={sendersComments[indexOfZaps]}
-              zappedPost={zappedPost ? zappedPost.content : ""}
-              provider={provider}
-              eventId={zappedPost ? zappedPost?.id : ""}
-              senderPubkey={pk}
-              mode={""}
-            />
+              isApproved={isApproved}
+              onApproveTask={() => onApproveTask(post.id)}
+              onRemoveTask={() => onRemoveTask(post.id)}
+              type="review"
+            >
+              <ZapTransfer
+                created={createdTimes[indexOfZaps]}
+                sender={senderContent}
+                amount={amountReceivedZaps[indexOfZaps]}
+                receiver={receiverContent}
+                comment={sendersComments[indexOfZaps]}
+                zappedPost={zappedPost ? zappedPost.content : ""}
+                provider={provider}
+                eventId={zappedPost ? zappedPost?.id : ""}
+                senderPubkey={pk}
+                mode={""}
+              />
+            </EventWrapper>
           );
         } else if (post.kind === 1) {
           const postAuthor = postsAuthors.find(
@@ -367,27 +403,30 @@ const Review = () => {
           const authorContent = postAuthor
             ? JSON.parse(postAuthor.content)
             : {};
-          const isApprove = approvedTasks.includes(post.id);
+          const isApproved = approvedTasks.includes(post.id);
 
           return (
-            <PostCard
-              isApproved={isApprove}
+            <EventWrapper
+              key={post.id}
+              isApproved={isApproved}
               onApproveTask={() => onApproveTask(post.id)}
               onRemoveTask={() => onRemoveTask(post.id)}
               type="review"
-              key={post.id}
-              name={
-                authorContent.display_name
-                  ? authorContent.display_name
-                  : authorContent.name
-              }
-              picture={authorContent.picture}
-              about={post.content}
-              pubkey={post.pubkey}
-              eventId={post.id}
-              createdDate={post.created_at ? post.created_at : 0}
-              thread={""}
-            />
+            >
+              <PostCard
+                name={
+                  authorContent.display_name
+                    ? authorContent.display_name
+                    : authorContent.name
+                }
+                picture={authorContent.picture}
+                about={post.content}
+                pubkey={post.pubkey}
+                eventId={post.id}
+                createdDate={post.created_at ? post.created_at : 0}
+                thread={""}
+              />
+            </EventWrapper>
           );
         } else {
           const postAuthor = postsAuthors.find(
@@ -402,29 +441,32 @@ const Review = () => {
             "description",
             "alt",
           ]).slice(0, 300);
-          const isApprove = approvedTasks.includes(post.id);
+          const isApproved = approvedTasks.includes(post.id);
 
           return (
-            <PostCard
-              isApproved={isApprove}
+            <EventWrapper
+              key={post.id}
+              isApproved={isApproved}
               onApproveTask={() => onApproveTask(post.id)}
               onRemoveTask={() => onRemoveTask(post.id)}
               type="review"
-              kindName={getKindName(post.kind ?? 0)}
-              key={post.id}
-              name={
-                authorContent.display_name
-                  ? authorContent.display_name
-                  : authorContent.name
-              }
-              picture={authorContent.picture}
-              about={body || post.content}
-              title={title}
-              pubkey={post.pubkey}
-              eventId={post.id}
-              createdDate={post.created_at ? post.created_at : 0}
-              thread={""}
-            />
+            >
+              <PostCard
+                kindName={getKindName(post.kind ?? 0)}
+                name={
+                  authorContent.display_name
+                    ? authorContent.display_name
+                    : authorContent.name
+                }
+                picture={authorContent.picture}
+                about={body || post.content}
+                title={title}
+                pubkey={post.pubkey}
+                eventId={post.id}
+                createdDate={post.created_at ? post.created_at : 0}
+                thread={""}
+              />
+            </EventWrapper>
           );
         }
       })}

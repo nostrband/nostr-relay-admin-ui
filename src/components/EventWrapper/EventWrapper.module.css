@@ -1,0 +1,19 @@
+.reviewButtons {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: right;
+}
+.reviewButtons button {
+  margin-left: 0.3rem;
+}
+.eventWrapper {
+  background-color: var(--body-background);
+  color: var(--body-color);
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  margin: 1rem;
+  padding: 0.5rem;
+  box-shadow: var(--body-boxshadow);
+  border-radius: 16px;
+}
