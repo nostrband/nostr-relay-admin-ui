@@ -31,9 +31,6 @@ type postItemType = {
   title?: string;
   kindName?: string;
   type?: string;
-  isApproved?: boolean;
-  onRemoveTask: () => void;
-  onApproveTask: () => void;
 };
 
 const PostItem: FC<postItemType> = ({
@@ -47,10 +44,6 @@ const PostItem: FC<postItemType> = ({
   taggedProfiles,
   title,
   kindName,
-  type,
-  isApproved,
-  onRemoveTask,
-  onApproveTask,
 }) => {
   const [imgError, setImgError] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
@@ -138,30 +131,6 @@ const PostItem: FC<postItemType> = ({
             </Dropdown.Menu>
           </Dropdown>
         </div>
-        {type === "events" ? (
-          <div className={cl.deleteButton}>
-            <Button variant="outline-danger" size="sm">
-              {<TrashFill />}
-            </Button>
-          </div>
-        ) : type === "review" ? (
-          <>
-            <div className={cl.reviewButtons}>
-              <Button
-                variant={`outline-${isApproved ? "success" : "secondary"}`}
-                size="sm"
-                onClick={onApproveTask}
-              >
-                {isApproved ? "Approved" : "Approve"}
-              </Button>
-              <Button variant="outline-danger" size="sm" onClick={onRemoveTask}>
-                Remove
-              </Button>
-            </div>
-          </>
-        ) : (
-          ""
-        )}
       </div>
       {title && (
         <div>

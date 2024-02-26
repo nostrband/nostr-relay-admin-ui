@@ -8,6 +8,7 @@ import cl from "./Events.module.css";
 import { useSearchParams } from "react-router-dom";
 import { dateToUnix } from "nostr-react";
 import { useAppSelector } from "../../../hooks/redux";
+import EventWrapper from "../../../components/EventWrapper/EventWrapper";
 
 const Events = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -262,7 +263,13 @@ const Events = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ndk, searchParams.get("q")]);
 
-  const onRemoveTask = async (id: string) => {};
+  function onApproveTask(): void {
+    throw new Error("Function not implemented.");
+  }
+
+  function onRemoveTask(): void {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <>
@@ -278,24 +285,28 @@ const Events = () => {
             const authorContent = postAuthor
               ? JSON.parse(postAuthor?.content)
               : {};
+
             return (
-              <PostCard
-                onApproveTask={() => {}}
-                onRemoveTask={() => onRemoveTask(post.id)}
-                type="events"
+              <EventWrapper
                 key={post.id}
-                name={
-                  authorContent.display_name
-                    ? authorContent.display_name
-                    : authorContent.name
-                }
-                picture={authorContent.picture}
-                about={post.content}
-                pubkey={post.pubkey}
-                eventId={post.id}
-                createdDate={post.created_at ? post.created_at : 0}
-                thread={""}
-              />
+                onApproveTask={() => onApproveTask()}
+                onRemoveTask={() => onRemoveTask()}
+                type="events"
+              >
+                <PostCard
+                  name={
+                    authorContent.display_name
+                      ? authorContent.display_name
+                      : authorContent.name
+                  }
+                  picture={authorContent.picture}
+                  about={post.content}
+                  pubkey={post.pubkey}
+                  eventId={post.id}
+                  createdDate={post.created_at ? post.created_at : 0}
+                  thread={""}
+                />
+              </EventWrapper>
             );
           })
         : ""}
