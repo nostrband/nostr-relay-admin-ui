@@ -294,7 +294,7 @@ const Settings = () => {
     filter.limit = 100;
     if (kinds.length) {
       Object.defineProperty(filter, "kinds", {
-        value: kinds.map((k) => getKindNumber(k.label)),
+        value: Array.from(new Set(kinds.map((k) => getKindNumber(k.label)))),
         enumerable: true,
       });
     }
@@ -370,7 +370,7 @@ const Settings = () => {
     const filter: NDKFilter = {};
     if (kinds.length) {
       Object.defineProperty(filter, "kinds", {
-        value: kinds.map((k) => getKindNumber(k.label)),
+        value: Array.from(new Set(kinds.map((k) => getKindNumber(k.label)))),
         enumerable: true,
       });
     }

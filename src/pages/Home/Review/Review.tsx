@@ -13,6 +13,7 @@ import { getZapAmount } from "../../../utils/zapFunctions";
 import { getTag } from "../../../utils/getTags";
 import ProfileItem from "../../../components/ProfileItem/ProfileItem";
 import EventWrapper from "../../../components/EventWrapper/EventWrapper";
+import { matchFilters } from "nostr-tools";
 
 interface IPair {
   relay: string;
@@ -26,6 +27,7 @@ const Review = () => {
   const [defaultRelays, setDefaulRelays] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [reviewRules, setReviewRules] = useState<ruleType[]>([]);
+  const [blockRules, setBlockRules] = useState<ruleType[]>([]);
   const [events, setEvents] = useState<NDKEvent[]>([]);
   const [receivedZaps, setReceivedZaps] = useState<NDKEvent[]>([]);
   const [amountReceivedZaps, setAmountReceivedZaps] = useState<number[]>([]);
@@ -63,6 +65,10 @@ const Review = () => {
       const reviewRules = newData.filter(
         (rule) => rule.type.toLowerCase() === "review",
       );
+      const blockRules = newData.filter(
+        (rule) => rule.type.toLowerCase() === "block",
+      );
+      setBlockRules(blockRules);
       setReviewRules(reviewRules);
     } catch (err) {
       console.log(err);
@@ -119,12 +125,17 @@ const Review = () => {
     );
   }
 
-  const fetchEvents = async (pair: IPair) => {
+  const fetchEvents = async (pair: IPair, blockPair: IPair | never[]) => {
     try {
       const relays = pair.relay;
       //@ts-ignore
       ndk.explicitRelayUrls = [relays];
-      const events = Array.from(await ndk.fetchEvents(pair.filters));
+      const preEvents = Array.from(await ndk.fetchEvents(pair.filters));
+      console.log(pair);
+
+      const events = preEvents.filter(
+        (event) => !matchFilters((blockPair as IPair).filters ?? [], event),
+      );
       const tasksStatus: taskStatus[] = await fetchEventsStatus(
         events.map((event) => event.id),
       );
@@ -261,8 +272,11 @@ const Review = () => {
           ),
         );
         const pairs = generatePairs(allRelays, reviewRules);
+        const blockPairs = generatePairs(allRelays, blockRules);
         for (const pair of pairs) {
-          fetchEvents(pair);
+          const blockPair =
+            blockPairs.find((block) => block.relay === pair.relay) ?? [];
+          fetchEvents(pair, blockPair);
         }
       }
     } catch (err) {
@@ -324,6 +338,7 @@ const Review = () => {
 
           return (
             <EventWrapper
+              key={post.id}
               isApproved={isApproved}
               onApproveTask={() => onApproveTask(post.id)}
               onRemoveTask={() => onRemoveTask(post.id)}
@@ -338,7 +353,6 @@ const Review = () => {
                     ? profileContent.display_name
                     : profileContent.name
                 }
-                key={post.id}
                 mail={profileContent.nip05}
               />
             </EventWrapper>
