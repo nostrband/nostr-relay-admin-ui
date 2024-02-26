@@ -288,18 +288,33 @@ const Review = () => {
 
   const onApproveTask = async (id: string) => {
     try {
-      const body = { eventId: id, status: "approved" };
-      const res = await sendPostAuth(
-        ndk,
-        store.pubkey,
-        url,
-        "POST",
-        JSON.stringify(body),
-      );
-      if (res?.id) {
-        setApprovedTasks([...approvedTasks, id]);
+      if (!approvedTasks.includes(id)) {
+        const body = { eventId: id, status: "approved" };
+        const res = await sendPostAuth(
+          ndk,
+          store.pubkey,
+          url,
+          "POST",
+          JSON.stringify(body),
+        );
+        if (res?.id) {
+          setApprovedTasks([...approvedTasks, id]);
+        }
+        console.log(res);
+      } else {
+        const res = await sendPostAuth(
+          ndk,
+          store.pubkey,
+          url,
+          "DELETE",
+          "",
+          id,
+        );
+        if (res?.success) {
+          setApprovedTasks(approvedTasks.filter((task) => task !== id));
+        }
+        console.log(res);
       }
-      console.log(res);
     } catch (e) {
       console.log(e);
     }

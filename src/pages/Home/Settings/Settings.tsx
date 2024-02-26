@@ -21,7 +21,7 @@ import {
   kindsSuggestions,
   relaysSuggestions,
 } from "../../../utils/inputSuggestions";
-import Rule from "../../../models/RuleModel";
+import Rule from "../../../models/Rule.model";
 import { sendPostAuth } from "../../../http/http";
 import { useAppSelector } from "../../../hooks/redux";
 import { dateToUnix } from "nostr-react";

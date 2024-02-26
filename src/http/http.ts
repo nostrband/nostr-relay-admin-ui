@@ -10,7 +10,7 @@ export const sendPostAuth = async <T>(
   url: string,
   method: string,
   body?: string,
-  ruleId?: number,
+  id?: number | string,
 ) => {
   const authEvent = new NDKEvent(ndk, {
     pubkey: pubkey as string,
@@ -46,14 +46,11 @@ export const sendPostAuth = async <T>(
     return data;
   }
   if (method === "DELETE") {
-    const { data } = await axios.delete(
-      `${process.env.REACT_APP_API_URL_RULES}/rules/${ruleId}`,
-      {
-        headers: {
-          Authorization: `Nostr ${encodedString}`,
-        },
+    const { data } = await axios.delete(`${url}/${id}`, {
+      headers: {
+        Authorization: `Nostr ${encodedString}`,
       },
-    );
+    });
     return data;
   }
   if (method === "POST" && body) {
@@ -65,7 +62,7 @@ export const sendPostAuth = async <T>(
     return data;
   }
   if (method === "PUT" && body) {
-    const currentUrl = url.includes("rules") ? `${url}/${ruleId}` : url;
+    const currentUrl = url.includes("rules") ? `${url}/${id}` : url;
     const { data } = await axios.put(currentUrl, JSON.parse(body), {
       headers: {
         Authorization: `Nostr ${encodedString}`,
